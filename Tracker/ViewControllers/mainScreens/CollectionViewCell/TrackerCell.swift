@@ -8,7 +8,7 @@
 import UIKit
 
 
-final class ColorCell: UICollectionViewCell {
+final class TrackerCell: UICollectionViewCell {
     // MARK: - Public Properties
     static let identifier = "ColorCell"
     // UI
