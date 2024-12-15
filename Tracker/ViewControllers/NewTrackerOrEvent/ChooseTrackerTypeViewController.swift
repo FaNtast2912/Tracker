@@ -70,7 +70,7 @@ final class ChooseTrackerTypeViewController: UIViewController {
     }
     // MARK: - IB Actions
     @objc
-    func habitButtonTapped() {
+    private func habitButtonTapped() {
         let viewControllerToPresent = NewTrackerViewContoller()
         viewControllerToPresent.title = "Новая привычка"
         guard let delegateToViewControllers else { return }
@@ -79,7 +79,7 @@ final class ChooseTrackerTypeViewController: UIViewController {
         self.present(newTrackerViewControllerNavigationController, animated: true)
     }
     @objc
-    func eventButtonTapped() {
+    private func eventButtonTapped() {
         let viewControllerToPresent = NewEventViewController()
         viewControllerToPresent.title = "Новое нерегулярное событие"
         guard let delegateToViewControllers else { return }

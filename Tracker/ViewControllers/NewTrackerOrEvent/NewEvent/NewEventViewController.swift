@@ -26,7 +26,7 @@ final class NewEventViewController: UIViewController, NewCategoryDelegateProtoco
     }()
     private lazy var errorLabel: UILabel = {
         let label = UILabel()
-        label.font = UIFont(name: "SF Pro", size: 17)
+        label.font = UIFont.systemFont(ofSize: 17)
         label.textColor = .ypRed
         label.textAlignment = .center
         label.text = "Ограничение 38 символов"
@@ -103,7 +103,7 @@ final class NewEventViewController: UIViewController, NewCategoryDelegateProtoco
         [
             textFieldVStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             textFieldVStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            textFieldVStack.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -561),
+            textFieldVStack.topAnchor.constraint(equalTo: view.layoutMarginsGuide.topAnchor, constant: 24),
             textField.heightAnchor.constraint(equalToConstant: 75)
         ]
         
@@ -141,12 +141,12 @@ final class NewEventViewController: UIViewController, NewCategoryDelegateProtoco
     }
     // MARK: - IB Actions
     @objc
-    func cancelButtonTapped() {
+    private func cancelButtonTapped() {
         view?.window?.rootViewController?.dismiss(animated: true)
     }
     
     @objc
-    func makeTrackerButtonTapped() {
+    private func makeTrackerButtonTapped() {
         guard let title = selectedNewTrackerTitle, let category = selectedCategory else { return }
         guard let mockColor = UIColor(named: "ypRed") else { return }
         let tracker = Tracker(
@@ -154,7 +154,8 @@ final class NewEventViewController: UIViewController, NewCategoryDelegateProtoco
             id: UUID(),
             color: mockColor,
             emoji: "🐙",
-            schedule: eventSchedule
+            schedule: eventSchedule,
+            isEvent: true
         )
         trackerStorage.createNewTracker(tracker: tracker)
         delegate?.didReceiveRefreshRequest()

@@ -28,49 +28,53 @@ final class TrackersService {
     var categories : [TrackerCategory] = [TrackerCategory(
         name: "Важное",
         trackers: [
-            Tracker(
-                name: "Бить баклуши",
-                id: UUID(),
-                color: UIColor.red,
-                emoji: "🍺",
-                schedule: [.monday,
-                           .tuesday,
-                           .wednesday,
-                           .thursday,
-                           .friday,
-                           .saturday,
-                           .sunday]
-            ),
-            Tracker(
-                name: "Изучаем SwiftUI",
-                id: UUID(),
-                color: UIColor.blue,
-                emoji: "🧑‍💻",
-                schedule: [.monday,
-                           .tuesday,
-                           .wednesday,
-                           .thursday,
-                           .friday,
-                           .saturday,
-                           .sunday]
-            ),
-            Tracker(
-                name: "Провести воркшоп для 27-й когорты",
-                id: UUID(),
-                color: UIColor.green,
-                emoji: "👨‍🏫",
-                schedule: [.tuesday]
-            ),
-            Tracker(
-                name: "Поиск работы",
-                id: UUID(),
-                color: UIColor.systemYellow,
-                emoji: "🔎",
-                schedule: [.monday,
-                           .tuesday,
-                           .wednesday,
-                           .thursday]
-            )
+//            Tracker(
+//                name: "Бить баклуши",
+//                id: UUID(),
+//                color: UIColor.red,
+//                emoji: "🍺",
+//                schedule: [.monday,
+//                           .tuesday,
+//                           .wednesday,
+//                           .thursday,
+//                           .friday,
+//                           .saturday,
+//                           .sunday],
+//                isEvent: true
+//            ),
+//            Tracker(
+//                name: "Изучаем SwiftUI",
+//                id: UUID(),
+//                color: UIColor.blue,
+//                emoji: "🧑‍💻",
+//                schedule: [.monday,
+//                           .tuesday,
+//                           .wednesday,
+//                           .thursday,
+//                           .friday,
+//                           .saturday,
+//                           .sunday],
+//                isEvent: false
+//            ),
+//            Tracker(
+//                name: "Провести воркшоп для 27-й когорты",
+//                id: UUID(),
+//                color: UIColor.green,
+//                emoji: "👨‍🏫",
+//                schedule: [.tuesday],
+//                isEvent: false
+//            ),
+//            Tracker(
+//                name: "Поиск работы",
+//                id: UUID(),
+//                color: UIColor.systemYellow,
+//                emoji: "🔎",
+//                schedule: [.monday,
+//                           .tuesday,
+//                           .wednesday,
+//                           .thursday],
+//                isEvent: false
+//            )
         ]
     )]
     // MARK: - Private Properties
@@ -82,16 +86,36 @@ final class TrackersService {
     // MARK: - IB Actions
     
     // MARK: - Public Methods
-    func appendTrackerInVisibleTrackers(weekday: Int) {
+    func appendTrackerInVisibleTrackers(weekday: Int, from recordTrackers: [TrackerRecord], selectedDate: Date) {
         var trackers = [Tracker]()
         let weekDays: Weekday = convertNumberToWeekDay(number: weekday)
+        
         for tracker in categories.first!.trackers {
-            for day in tracker.schedule {
-                if day == weekDays {
+            let trackerRecord: TrackerRecord? = {
+                for recordTracker in recordTrackers {
+                    if tracker.id == recordTracker.id {
+                        return recordTracker
+                    }
+                }
+                return nil
+            }()
+            let isTrackerCompleted: Bool = {
+                return trackerRecord == nil ? false : true
+            }()
+            
+            if tracker.isEvent, isTrackerCompleted {
+                if trackerRecord?.date == selectedDate {
                     trackers.append(tracker)
+                }
+            } else {
+                for day in tracker.schedule {
+                    if day == weekDays {
+                        trackers.append(tracker)
+                    }
                 }
             }
         }
+        
         let categoryWithVisibleTrackers = TrackerCategory(name: categories.first!.name, trackers: trackers)
         visibleCategory.append(categoryWithVisibleTrackers)
     }

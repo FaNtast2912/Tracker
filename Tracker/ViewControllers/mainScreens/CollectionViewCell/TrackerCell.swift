@@ -13,7 +13,7 @@ final class TrackerCell: UICollectionViewCell {
     static let identifier = "ColorCell"
     // UI
     lazy var doneButton: UIButton = {
-        let button = UIButton()
+        let button = UIButton(type: .custom)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.layer.cornerRadius = 17
         button.setImage(UIImage(systemName: "plus"), for: .normal)
@@ -123,7 +123,7 @@ final class TrackerCell: UICollectionViewCell {
     private var trackerID: UUID?
     private var indexPath: IndexPath?
     private var daysDone: Int? = 7
-    
+    private var tracker: Tracker?
     // MARK: - Initializers
     required init?(coder: NSCoder) {
         super.init(coder: coder)
@@ -147,6 +147,7 @@ final class TrackerCell: UICollectionViewCell {
     }
     // MARK: - Public Methods
     func configureCell(tracker: Tracker, isCompletedToday: Bool, completedDays: Int, indexPath: IndexPath, delegate: TrackerCellDelegate) {
+        self.tracker = tracker
         self.indexPath = indexPath
         self.trackerID = tracker.id
         self.isCompletedToday = isCompletedToday
@@ -157,7 +158,10 @@ final class TrackerCell: UICollectionViewCell {
         colorView.backgroundColor = tracker.color
         doneButton.tintColor = .ypWhite
         doneButton.backgroundColor = tracker.color
-        let image = !isCompletedToday ? UIImage(systemName: "plus") : UIImage(named: "doneButton")
+        let plusImage = UIImage(systemName: "plus")
+        let doneImage = UIImage(named: "doneButton")
+        let image = !isCompletedToday ? plusImage : doneImage
+        doneButton.alpha = isCompletedToday ?  0.3 : 1
         doneButton.setImage(image, for: .normal)
         
     }

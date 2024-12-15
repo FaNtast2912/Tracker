@@ -7,7 +7,7 @@
 import Foundation
 import UIKit
 
-class TrackersViewController: UIViewController, UISearchResultsUpdating, UISearchControllerDelegate, TrackerCellDelegate, TrackersDelegateProtocol {
+final class TrackersViewController: UIViewController, UISearchResultsUpdating, UISearchControllerDelegate, TrackerCellDelegate, TrackersDelegateProtocol {
     // MARK: - Public Properties
     
     // MARK: - Private Properties
@@ -42,7 +42,6 @@ class TrackersViewController: UIViewController, UISearchResultsUpdating, UISearc
         datePicker.translatesAutoresizingMaskIntoConstraints = false
         datePicker.preferredDatePickerStyle = .compact
         datePicker.datePickerMode = .date
-        datePicker.locale = Locale(identifier: "ru_RU")
         datePicker.widthAnchor.constraint(equalToConstant: 100).isActive = true
         datePicker.addTarget(self, action: #selector(changeDate(_:)) , for: .valueChanged)
         return datePicker
@@ -128,6 +127,7 @@ class TrackersViewController: UIViewController, UISearchResultsUpdating, UISearc
     // MARK: - Public Methods
     func didReceiveRefreshRequest() {
         showTrackersInDate(Date())
+        refreshCollection()
     }
     func didReceiveCompleteTrackerId(on index: IndexPath, for id: UUID) {
         let trackerRecord = TrackerRecord(id: id, date: datePicker.date)
@@ -155,7 +155,7 @@ class TrackersViewController: UIViewController, UISearchResultsUpdating, UISearc
     private func showTrackersInDate(_ date: Date) {
         trackerStorage.clearVisibleTrackers()
         let weekday = calendar.component(.weekday, from: date)
-        trackerStorage.appendTrackerInVisibleTrackers(weekday: weekday)
+        trackerStorage.appendTrackerInVisibleTrackers(weekday: weekday, from: completedTrackers, selectedDate: date)
         trackersCollectionView.reloadData()
     }
     
@@ -184,14 +184,8 @@ class TrackersViewController: UIViewController, UISearchResultsUpdating, UISearc
     }
     
     private func changeTrackersStub(isEmpty: Bool) {
-        if isEmpty {
-            trackersStubImage.image = UIImage(named: "trackersIsEmpty")
-            trackersStubLabel.text = "Ничего не найдено"
-        } else {
-            trackersStubImage.image = UIImage(named: "trackerStubImage")
-            trackersStubLabel.text = "Что будем отслеживать?"
-        }
-        
+        trackersStubImage.image = isEmpty ? UIImage(named: "trackersIsEmpty") : UIImage(named: "trackerStubImage")
+        trackersStubLabel.text = isEmpty ? "Ничего не найдено" : "Что будем отслеживать?"
     }
     
     private func setupNavBar() {

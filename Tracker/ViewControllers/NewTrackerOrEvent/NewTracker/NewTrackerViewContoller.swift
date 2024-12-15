@@ -104,7 +104,7 @@ final class NewTrackerViewContoller: UIViewController, NewCategoryDelegateProtoc
         [
             textFieldVStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             textFieldVStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            textFieldVStack.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -561),
+            textFieldVStack.topAnchor.constraint(equalTo: view.layoutMarginsGuide.topAnchor, constant: 24),
             textField.heightAnchor.constraint(equalToConstant: 75)
         ]
         
@@ -142,7 +142,7 @@ final class NewTrackerViewContoller: UIViewController, NewCategoryDelegateProtoc
     func makeTrackerButtonTapped() {
         guard let title = selectedNewTrackerTitle, let category = selectedCategory else { return }
         guard let mockColor = UIColor(named: "ypRed") else { return }
-        let tracker = Tracker(name: title, id: UUID(), color: mockColor, emoji: "🐙", schedule: selectedWeekDays)
+        let tracker = Tracker(name: title, id: UUID(), color: mockColor, emoji: "🐙", schedule: selectedWeekDays, isEvent: false)
         trackerStorage.createNewTracker(tracker: tracker)
         delegate?.didReceiveRefreshRequest()
         view?.window?.rootViewController?.dismiss(animated: true)
