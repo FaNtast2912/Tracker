@@ -28,53 +28,53 @@ final class TrackersService {
     var categories : [TrackerCategory] = [TrackerCategory(
         name: "Важное",
         trackers: [
-//            Tracker(
-//                name: "Бить баклуши",
-//                id: UUID(),
-//                color: UIColor.red,
-//                emoji: "🍺",
-//                schedule: [.monday,
-//                           .tuesday,
-//                           .wednesday,
-//                           .thursday,
-//                           .friday,
-//                           .saturday,
-//                           .sunday],
-//                isEvent: true
-//            ),
-//            Tracker(
-//                name: "Изучаем SwiftUI",
-//                id: UUID(),
-//                color: UIColor.blue,
-//                emoji: "🧑‍💻",
-//                schedule: [.monday,
-//                           .tuesday,
-//                           .wednesday,
-//                           .thursday,
-//                           .friday,
-//                           .saturday,
-//                           .sunday],
-//                isEvent: false
-//            ),
-//            Tracker(
-//                name: "Провести воркшоп для 27-й когорты",
-//                id: UUID(),
-//                color: UIColor.green,
-//                emoji: "👨‍🏫",
-//                schedule: [.tuesday],
-//                isEvent: false
-//            ),
-//            Tracker(
-//                name: "Поиск работы",
-//                id: UUID(),
-//                color: UIColor.systemYellow,
-//                emoji: "🔎",
-//                schedule: [.monday,
-//                           .tuesday,
-//                           .wednesday,
-//                           .thursday],
-//                isEvent: false
-//            )
+            Tracker(
+                name: "Бить баклуши",
+                id: UUID(),
+                color: UIColor.red,
+                emoji: "🍺",
+                schedule: [.monday,
+                           .tuesday,
+                           .wednesday,
+                           .thursday,
+                           .friday,
+                           .saturday,
+                           .sunday],
+                isEvent: true
+            ),
+            Tracker(
+                name: "Изучаем SwiftUI",
+                id: UUID(),
+                color: UIColor.blue,
+                emoji: "🧑‍💻",
+                schedule: [.monday,
+                           .tuesday,
+                           .wednesday,
+                           .thursday,
+                           .friday,
+                           .saturday,
+                           .sunday],
+                isEvent: false
+            ),
+            Tracker(
+                name: "Провести воркшоп для 27-й когорты",
+                id: UUID(),
+                color: UIColor.green,
+                emoji: "👨‍🏫",
+                schedule: [.tuesday],
+                isEvent: false
+            ),
+            Tracker(
+                name: "Поиск работы",
+                id: UUID(),
+                color: UIColor.systemYellow,
+                emoji: "🔎",
+                schedule: [.monday,
+                           .tuesday,
+                           .wednesday,
+                           .thursday],
+                isEvent: false
+            )
         ]
     )]
     // MARK: - Private Properties

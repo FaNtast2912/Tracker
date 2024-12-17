@@ -30,7 +30,7 @@ final class TrackersViewController: UIViewController, UISearchResultsUpdating, U
     }()
     private lazy var trackersStubLabel: UILabel = {
         let label = UILabel()
-        label.font = UIFont(name: "SF Pro", size: 12)
+        label.font = .systemFont(ofSize: 12)
         label.textColor = .ypBlack
         label.text = "Что будем отслеживать?"
         label.textAlignment = .center
