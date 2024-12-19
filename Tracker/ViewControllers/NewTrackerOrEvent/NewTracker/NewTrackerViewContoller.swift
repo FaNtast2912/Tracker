@@ -14,6 +14,18 @@ final class NewTrackerViewContoller: UIViewController, NewCategoryDelegateProtoc
     private var delegate: TrackersDelegateProtocol?
     private let trackerStorage = TrackersService.shared
     // MARK: UI
+    private lazy var newTrackerCollection: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .vertical
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.showsVerticalScrollIndicator = false
+        collectionView.backgroundColor = .ypWhite
+        collectionView.register(NewTrackerOrEventCell.self, forCellWithReuseIdentifier: NewTrackerOrEventCell.identifier)
+        collectionView.register(TrackerCellHeader.self, forSupplementaryViewOfKind:UICollectionView.elementKindSectionHeader, withReuseIdentifier: "header")
+        collectionView.dataSource = self
+        collectionView.delegate = self
+        return collectionView
+    }()
     private lazy var newTrackersTable: UITableView = {
         let tableView = UITableView()
         tableView.layer.cornerRadius = 16
@@ -117,16 +129,34 @@ final class NewTrackerViewContoller: UIViewController, NewCategoryDelegateProtoc
             newTrackersTable.heightAnchor.constraint(equalToConstant: 150)
         ]
     }
+    private var newTrackerCollectionViewConstraint: [NSLayoutConstraint] {
+        [
+            newTrackerCollection.topAnchor.constraint(equalTo: newTrackersTable.bottomAnchor, constant: 32),
+            newTrackerCollection.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            newTrackerCollection.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            newTrackerCollection.bottomAnchor.constraint(equalTo: cancelButton.topAnchor, constant: -16)
+            
+        ]
+    }
     private var allUiElementsArray: [UIView] {
-        [cancelButton,makeTrackerButton,textFieldVStack,newTrackersTable]
+        [cancelButton,makeTrackerButton,textFieldVStack,newTrackersTable,newTrackerCollection]
     }
     private var allConstraintsArray: [NSLayoutConstraint] {
-        cancelButtonConstraint + makeTrackerButtonConstraint + textFieldVStackConstraint + newTrackersTableConstraint
+        cancelButtonConstraint + makeTrackerButtonConstraint + textFieldVStackConstraint + newTrackersTableConstraint + newTrackerCollectionViewConstraint
     }
     private let trackersTableSections = ["Категория", "Расписание"]
+    private let emojiArr: [String] = ["🙂","😻","🌺","🐶","❤️","😱"
+                                      ,"😇","😡","🥶","🤔","🍺","🍔",
+                                      "🥦","🏓","🥇","🎸","🏝","😪"]
+    private let colorArr: [UIColor] = [
+        .colorSelection1, .colorSelection2, .colorSelection3, .colorSelection4, .colorSelection5,.colorSelection6,
+        .colorSelection7, .colorSelection8, .colorSelection9, .colorSelection10, .colorSelection11, .colorSelection12,
+        .colorSelection13, .colorSelection14, .colorSelection15, .colorSelection16, .colorSelection17, .colorSelection18]
     private var selectedCategory : TrackerCategory?
     private var selectedWeekDays: [Weekday] = []
     private var selectedNewTrackerTitle: String?
+    private var selectedEmojiIndex: Int?
+    private var selectedColorIndex: Int?
     // MARK: - Overrides Methods
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -140,9 +170,15 @@ final class NewTrackerViewContoller: UIViewController, NewCategoryDelegateProtoc
     }
     @objc
     func makeTrackerButtonTapped() {
-        guard let title = selectedNewTrackerTitle, let category = selectedCategory else { return }
-        guard let mockColor = UIColor(named: "ypRed") else { return }
-        let tracker = Tracker(name: title, id: UUID(), color: mockColor, emoji: "🐙", schedule: selectedWeekDays, isEvent: false)
+        guard let selectedNewTrackerTitle, let selectedCategory, let selectedColorIndex, let selectedEmojiIndex else { return }
+        let tracker = Tracker(
+            name: selectedNewTrackerTitle,
+            id: UUID(),
+            color: colorArr[selectedColorIndex],
+            emoji: emojiArr[selectedEmojiIndex],
+            schedule: selectedWeekDays,
+            isEvent: false
+        )
         trackerStorage.createNewTracker(tracker: tracker)
         delegate?.didReceiveRefreshRequest()
         view?.window?.rootViewController?.dismiss(animated: true)
@@ -238,13 +274,6 @@ extension NewTrackerViewContoller: UITableViewDataSource {
         return trackersTableSections.count
     }
     
-    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
-        guard let view = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "header", for: indexPath) as? TrackerCellHeader else { return UICollectionReusableView() }
-        let title = trackerStorage.titleForSection(section: indexPath.section)
-            view.configureTitle(title)
-            return view
-        }
-    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "cell")
         cell.accessoryType = .disclosureIndicator
@@ -282,5 +311,98 @@ extension NewTrackerViewContoller: UITableViewDelegate {
         default:
             debugPrint("не верный выбор секции")
         }
+    }
+}
+
+extension NewTrackerViewContoller: UICollectionViewDataSource {
+    
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        2
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        let count = emojiArr.count
+        return count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        guard let view = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "header", for: indexPath) as? TrackerCellHeader else { return UICollectionReusableView() }
+        let sectionNumber = indexPath.section
+        switch sectionNumber {
+        case 0:
+            view.configureTitle("Emoji")
+        case 1:
+            view.configureTitle("Цвет")
+        default:
+            assertionFailure("section error")
+        }
+        return view
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: NewTrackerOrEventCell.identifier, for: indexPath) as? NewTrackerOrEventCell else {
+            return UICollectionViewCell()
+        }
+        let sectionNumber = indexPath.section
+        switch sectionNumber {
+        case 0:
+            cell.configureEmojiCell(emoji: emojiArr[indexPath.row])
+        case 1:
+            cell.configureColorCell(color: colorArr[indexPath.row])
+        default:
+            assertionFailure("section error")
+        }
+        return cell
+    }
+    
+}
+
+extension NewTrackerViewContoller: UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return CGSize(width: 52 , height: 52)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        return UIEdgeInsets(top: 24, left: 18, bottom: 24, right: 18)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        0
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        5
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
+        
+        let headerSize = CGSize(width: view.frame.width, height: 30)
+        return headerSize
+    }
+}
+
+extension NewTrackerViewContoller: UICollectionViewDelegate {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        guard let cell = collectionView.cellForItem(at: indexPath) as? NewTrackerOrEventCell else { return }
+        let sectionNumber = indexPath.section
+        switch sectionNumber {
+        case 0:
+            if selectedEmojiIndex != nil {
+                guard let cell = collectionView.cellForItem(at: IndexPath(row: selectedEmojiIndex!, section: sectionNumber)) as? NewTrackerOrEventCell else { return }
+                cell.deselectEmojiCell()
+            }
+            cell.selectEmojiCell()
+            selectedEmojiIndex = indexPath.row
+        case 1:
+            if selectedColorIndex != nil {
+                guard let cell = collectionView.cellForItem(at: IndexPath(row: selectedColorIndex!, section: sectionNumber)) as? NewTrackerOrEventCell else { return }
+                cell.deselectColorCell()
+            }
+            cell.selectColorCell()
+            selectedColorIndex = indexPath.row
+        default:
+            assertionFailure("Invalid section number")
+        }
+        canCreate()
     }
 }

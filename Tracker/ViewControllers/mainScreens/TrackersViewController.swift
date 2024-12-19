@@ -92,10 +92,6 @@ final class TrackersViewController: UIViewController, UISearchResultsUpdating, U
     // MARK: setup Tracker, category
     private let trackerStorage = TrackersService.shared
     private var completedTrackers: [TrackerRecord] = []
-    private var params = GeometricParams(cellCount: 3,
-                                         leftInset: 10,
-                                         rightInset: 10,
-                                         cellSpacing: 10)
     private var calendar = Calendar.gregorian
     // MARK: - Initializers
     

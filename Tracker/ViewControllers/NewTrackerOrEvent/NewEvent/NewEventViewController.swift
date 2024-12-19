@@ -13,6 +13,18 @@ final class NewEventViewController: UIViewController, NewCategoryDelegateProtoco
     private weak var delegate: TrackersDelegateProtocol?
     private let trackerStorage = TrackersService.shared
     // MARK: UI
+    private lazy var newEventCollection: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .vertical
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.showsVerticalScrollIndicator = false
+        collectionView.backgroundColor = .ypWhite
+        collectionView.register(NewTrackerOrEventCell.self, forCellWithReuseIdentifier: NewTrackerOrEventCell.identifier)
+        collectionView.register(TrackerCellHeader.self, forSupplementaryViewOfKind:UICollectionView.elementKindSectionHeader, withReuseIdentifier: "header")
+        collectionView.dataSource = self
+        collectionView.delegate = self
+        return collectionView
+    }()
     private lazy var newEventTable: UITableView = {
         let tableView = UITableView()
         tableView.layer.cornerRadius = 16
@@ -108,7 +120,7 @@ final class NewEventViewController: UIViewController, NewCategoryDelegateProtoco
         ]
         
     }
-    private var newTrackersTableConstraint: [NSLayoutConstraint] {
+    private var newEventTableConstraint: [NSLayoutConstraint] {
         [
             newEventTable.topAnchor.constraint(equalTo: textFieldVStack.bottomAnchor, constant: 24),
             newEventTable.leadingAnchor.constraint(equalTo: textFieldVStack.leadingAnchor),
@@ -116,14 +128,25 @@ final class NewEventViewController: UIViewController, NewCategoryDelegateProtoco
             newEventTable.heightAnchor.constraint(equalToConstant: 75)
         ]
     }
+    private var newEventCollectionViewConstraint: [NSLayoutConstraint] {
+        [
+            newEventCollection.topAnchor.constraint(equalTo: newEventTable.bottomAnchor, constant: 32),
+            newEventCollection.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            newEventCollection.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            newEventCollection.bottomAnchor.constraint(equalTo: cancelButton.topAnchor, constant: -16)
+            
+        ]
+    }
     private var allUiElementsArray: [UIView] {
-        [cancelButton,makeTrackerButton,textFieldVStack,newEventTable]
+        [cancelButton,makeTrackerButton,textFieldVStack,newEventTable,newEventCollection]
     }
     private var allConstraintsArray: [NSLayoutConstraint] {
-        cancelButtonConstraint + makeTrackerButtonConstraint + textFieldVStackConstraint + newTrackersTableConstraint
+        cancelButtonConstraint + makeTrackerButtonConstraint + textFieldVStackConstraint + newEventTableConstraint + newEventCollectionViewConstraint
     }
     private var selectedCategory : TrackerCategory?
-    private var selectedNewTrackerTitle: String?
+    private var selectedNewEventTitle: String?
+    private var selectedEmojiIndex: Int?
+    private var selectedColorIndex: Int?
     private var eventSchedule: [Weekday] = [
         .monday,
         .tuesday,
@@ -133,6 +156,13 @@ final class NewEventViewController: UIViewController, NewCategoryDelegateProtoco
         .saturday,
         .sunday
     ]
+    private let emojiArr: [String] = ["🙂","😻","🌺","🐶","❤️","😱"
+                            ,"😇","😡","🥶","🤔","🍺","🍔",
+                            "🥦","🏓","🥇","🎸","🏝","😪"]
+    private let colorArr: [UIColor] = [
+        .colorSelection1, .colorSelection2, .colorSelection3, .colorSelection4, .colorSelection5,.colorSelection6,
+        .colorSelection7, .colorSelection8, .colorSelection9, .colorSelection10, .colorSelection11, .colorSelection12,
+        .colorSelection13, .colorSelection14, .colorSelection15, .colorSelection16, .colorSelection17, .colorSelection18]
     // MARK: - Overrides Methods
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -147,13 +177,12 @@ final class NewEventViewController: UIViewController, NewCategoryDelegateProtoco
     
     @objc
     private func makeTrackerButtonTapped() {
-        guard let title = selectedNewTrackerTitle, let category = selectedCategory else { return }
-        guard let mockColor = UIColor(named: "ypRed") else { return }
+        guard let selectedNewEventTitle, let selectedCategory, let selectedColorIndex, let selectedEmojiIndex else { return }
         let tracker = Tracker(
-            name: title,
+            name: selectedNewEventTitle,
             id: UUID(),
-            color: mockColor,
-            emoji: "🐙",
+            color: colorArr[selectedColorIndex],
+            emoji: emojiArr[selectedEmojiIndex],
             schedule: eventSchedule,
             isEvent: true
         )
@@ -172,7 +201,7 @@ final class NewEventViewController: UIViewController, NewCategoryDelegateProtoco
     }
     // MARK: - Private Methods
     private func canCreate() {
-        if selectedCategory != nil, selectedNewTrackerTitle != nil {
+        if selectedCategory != nil, selectedNewEventTitle != nil, selectedColorIndex != nil, selectedEmojiIndex != nil {
             makeTrackerButton.isEnabled = true
             makeTrackerButton.backgroundColor = .ypBlack
         } else {
@@ -201,15 +230,15 @@ extension NewEventViewController: UITextFieldDelegate {
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.endEditing(true)
-        selectedNewTrackerTitle = textField.text ?? ""
-        if selectedNewTrackerTitle != "" {
+        selectedNewEventTitle = textField.text ?? ""
+        if selectedNewEventTitle != "" {
             canCreate()
         }
         if let text = textField.text {
             if text.count > 38 {
                 return false
             }
-            selectedNewTrackerTitle = text
+            selectedNewEventTitle = text
             textField.resignFirstResponder()
             return true
         }
@@ -221,13 +250,6 @@ extension NewEventViewController: UITextFieldDelegate {
 extension NewEventViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return 1
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
-        guard let view = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "header", for: indexPath) as? TrackerCellHeader else { return UICollectionReusableView() }
-        let title = trackerStorage.titleForSection(section: indexPath.section)
-        view.configureTitle(title)
-        return view
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -251,5 +273,98 @@ extension NewEventViewController: UITableViewDelegate {
         viewControllerToPresent.title = "Категория"
         let newCategoryNavigationController = UINavigationController(rootViewController: viewControllerToPresent)
         self.present(newCategoryNavigationController, animated: true)
+    }
+}
+
+extension NewEventViewController: UICollectionViewDataSource {
+    
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        2
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        let count = emojiArr.count
+        return count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        guard let view = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "header", for: indexPath) as? TrackerCellHeader else { return UICollectionReusableView() }
+        let sectionNumber = indexPath.section
+        switch sectionNumber {
+        case 0:
+            view.configureTitle("Emoji")
+        case 1:
+            view.configureTitle("Цвет")
+        default:
+            assertionFailure("section error")
+        }
+        return view
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: NewTrackerOrEventCell.identifier, for: indexPath) as? NewTrackerOrEventCell else {
+            return UICollectionViewCell()
+        }
+        let sectionNumber = indexPath.section
+        switch sectionNumber {
+        case 0:
+            cell.configureEmojiCell(emoji: emojiArr[indexPath.row])
+        case 1:
+            cell.configureColorCell(color: colorArr[indexPath.row])
+        default:
+            assertionFailure("section error")
+        }
+        return cell
+    }
+    
+}
+
+extension NewEventViewController: UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return CGSize(width: 52 , height: 52)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        return UIEdgeInsets(top: 24, left: 18, bottom: 24, right: 18)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        0
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        5
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
+        
+        let headerSize = CGSize(width: view.frame.width, height: 30)
+        return headerSize
+    }
+}
+
+extension NewEventViewController: UICollectionViewDelegate {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        guard let cell = collectionView.cellForItem(at: indexPath) as? NewTrackerOrEventCell else { return }
+        let sectionNumber = indexPath.section
+        switch sectionNumber {
+        case 0:
+            if selectedEmojiIndex != nil {
+                guard let cell = collectionView.cellForItem(at: IndexPath(row: selectedEmojiIndex!, section: sectionNumber)) as? NewTrackerOrEventCell else { return }
+                cell.deselectEmojiCell()
+            }
+            cell.selectEmojiCell()
+            selectedEmojiIndex = indexPath.row
+        case 1:
+            if selectedColorIndex != nil {
+                guard let cell = collectionView.cellForItem(at: IndexPath(row: selectedColorIndex!, section: sectionNumber)) as? NewTrackerOrEventCell else { return }
+                cell.deselectColorCell()
+            }
+            cell.selectColorCell()
+            selectedColorIndex = indexPath.row
+        default:
+            assertionFailure("Invalid section number")
+        }
+        canCreate()
     }
 }

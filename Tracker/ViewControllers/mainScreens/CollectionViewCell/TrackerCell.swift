@@ -10,7 +10,7 @@ import UIKit
 
 final class TrackerCell: UICollectionViewCell {
     // MARK: - Public Properties
-    static let identifier = "ColorCell"
+    static let identifier = "TrackerCell"
     // UI
     lazy var doneButton: UIButton = {
         let button = UIButton(type: .custom)
