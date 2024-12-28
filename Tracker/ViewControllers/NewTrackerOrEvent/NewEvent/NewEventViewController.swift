@@ -147,14 +147,14 @@ final class NewEventViewController: UIViewController, NewCategoryDelegateProtoco
     private var selectedNewEventTitle: String?
     private var selectedEmojiIndex: Int?
     private var selectedColorIndex: Int?
-    private var eventSchedule: [Weekday] = [
-        .monday,
-        .tuesday,
-        .wednesday,
-        .thursday,
-        .friday,
-        .saturday,
-        .sunday
+    private var eventSchedule: [Int] = [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        1
     ]
     private let emojiArr: [String] = ["🙂","😻","🌺","🐶","❤️","😱"
                             ,"😇","😡","🥶","🤔","🍺","🍔",

@@ -153,7 +153,7 @@ final class NewTrackerViewContoller: UIViewController, NewCategoryDelegateProtoc
         .colorSelection7, .colorSelection8, .colorSelection9, .colorSelection10, .colorSelection11, .colorSelection12,
         .colorSelection13, .colorSelection14, .colorSelection15, .colorSelection16, .colorSelection17, .colorSelection18]
     private var selectedCategory : TrackerCategory?
-    private var selectedWeekDays: [Weekday] = []
+    private var selectedWeekDays: [Int] = []
     private var selectedNewTrackerTitle: String?
     private var selectedEmojiIndex: Int?
     private var selectedColorIndex: Int?
@@ -192,38 +192,40 @@ final class NewTrackerViewContoller: UIViewController, NewCategoryDelegateProtoc
         newTrackersTable.reloadData()
         canCreate()
     }
-    func didReceiveWeekDays(weekDays: [Weekday]) {
+    func didReceiveWeekDays(weekDays: [Int]) {
         selectedWeekDays = weekDays
         newTrackersTable.reloadData()
         canCreate()
     }
     // MARK: - Private Methods
-    private func getStringFromWeekDays(weekDays: [Weekday])  -> String {
+    private func getStringFromWeekDays(weekDays: [Int])  -> String {
         let count = weekDays.count
         let isAllSelected = count == 7
         var resultArr: [String] = []
         for day in weekDays {
             switch day {
-            case .monday:
+            case 1:
                 resultArr.append("Пн")
-            case .tuesday:
+            case 2:
                 resultArr.append("Вт")
-            case .wednesday:
+            case 3:
                 resultArr.append("Ср")
-            case .thursday:
+            case 4:
                 resultArr.append("Чт")
-            case .friday:
+            case 5:
                 resultArr.append("Пт")
-            case .saturday:
+            case 6:
                 resultArr.append("Cб")
-            case .sunday:
+            case 7:
                 resultArr.append("Вск")
+            default:
+                print("unexpected day of week")
             }
         }
         return isAllSelected ? "Каждый день" : resultArr.joined(separator: ",")
     }
     private func canCreate() {
-        if selectedCategory != nil, selectedNewTrackerTitle != nil, !selectedWeekDays.isEmpty {
+        if selectedCategory != nil, selectedNewTrackerTitle != nil, !selectedWeekDays.isEmpty, let selectedColorIndex, let selectedEmojiIndex {
             makeTrackerButton.isEnabled = true
             makeTrackerButton.backgroundColor = .ypBlack
         } else {

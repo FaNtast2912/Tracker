@@ -35,6 +35,7 @@ final class WeekDayCell: UITableViewCell {
         "Воскресенье"
     ]
     private var dayOfWeek: Int?
+    private var wasChosen: Bool = false
     // MARK: - Initializers
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -49,15 +50,15 @@ final class WeekDayCell: UITableViewCell {
     // MARK: - IB Actions
     @objc private func onOffAction(_ sender: UISwitch) {
         guard let dayOfWeek else { return }
-        delegate?.didReceiveWeekDay(weekDay: dayOfWeek)
+            delegate?.didReceiveWeekDay(weekDay: dayOfWeek)
     }
     // MARK: - Public Methods
     func configureCell(indexPath: IndexPath, delegate: WeekDayCellDelegateProtocol) {
-        dayOfWeek = indexPath.row
+        dayOfWeek = indexPath.row + 1
         guard let dayOfWeek else { return }
         self.delegate = delegate
         backgroundColor = .ypBackground
-        title.text = weekDaysString[dayOfWeek]
+        title.text = weekDaysString[dayOfWeek - 1]
     }
     // MARK: - Private Methods
     private func setUI() {

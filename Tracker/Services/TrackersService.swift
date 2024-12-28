@@ -12,8 +12,17 @@ final class TrackersService {
     
     // MARK: - Public Properties
     static let shared = TrackersService()
+    var trackerCategoryStore: TrackerCategoryStore {
+            return _trackerCategoryStore
+        }
+    private let _trackerCategoryStore = TrackerCategoryStore()
+    private var trackerRecordStore = TrackerRecordStore()
+    
     var visibleCategory: [TrackerCategory] = []
-    var isStorageEmpty: Bool { categories[0].trackers.isEmpty }
+    var isStorageEmpty: Bool {
+        guard let firstCategory = categories.first else { return true }
+        return firstCategory.trackers.isEmpty
+    }
     var visibleCount: Int { visibleCategory.count }
     var isVisibleTrackersEmpty: Bool {
         if visibleCategory.isEmpty {
@@ -25,58 +34,9 @@ final class TrackersService {
             return false
         }
     }
-    var categories : [TrackerCategory] = [TrackerCategory(
-        name: "Важное",
-        trackers: [
-            Tracker(
-                name: "Бить баклуши",
-                id: UUID(),
-                color: UIColor.red,
-                emoji: "🍺",
-                schedule: [.monday,
-                           .tuesday,
-                           .wednesday,
-                           .thursday,
-                           .friday,
-                           .saturday,
-                           .sunday],
-                isEvent: true
-            ),
-            Tracker(
-                name: "Изучаем SwiftUI",
-                id: UUID(),
-                color: UIColor.blue,
-                emoji: "🧑‍💻",
-                schedule: [.monday,
-                           .tuesday,
-                           .wednesday,
-                           .thursday,
-                           .friday,
-                           .saturday,
-                           .sunday],
-                isEvent: false
-            ),
-            Tracker(
-                name: "Провести воркшоп для 27-й когорты",
-                id: UUID(),
-                color: UIColor.green,
-                emoji: "👨‍🏫",
-                schedule: [.tuesday],
-                isEvent: false
-            ),
-            Tracker(
-                name: "Поиск работы",
-                id: UUID(),
-                color: UIColor.systemYellow,
-                emoji: "🔎",
-                schedule: [.monday,
-                           .tuesday,
-                           .wednesday,
-                           .thursday],
-                isEvent: false
-            )
-        ]
-    )]
+    var categories : [TrackerCategory] {
+        return trackerCategoryStore.trackersCategories
+    }
     // MARK: - Private Properties
     
     // MARK: - Initializers
@@ -88,34 +48,31 @@ final class TrackersService {
     // MARK: - Public Methods
     func appendTrackerInVisibleTrackers(weekday: Int, from recordTrackers: [TrackerRecord], selectedDate: Date) {
         var trackers = [Tracker]()
-        let weekDays: Weekday = convertNumberToWeekDay(number: weekday)
         
-        for tracker in categories.first!.trackers {
-            let trackerRecord: TrackerRecord? = {
-                for recordTracker in recordTrackers {
-                    if tracker.id == recordTracker.id {
-                        return recordTracker
-                    }
-                }
-                return nil
-            }()
-            let isTrackerCompleted: Bool = {
-                return trackerRecord == nil ? false : true
-            }()
-            
-            if tracker.isEvent, isTrackerCompleted {
-                if trackerRecord?.date == selectedDate {
+        let records = trackerRecordStore.getRecords()
+        guard let firstCategory = categories.first else { return }
+        
+        for tracker in firstCategory.trackers {
+            if tracker.isEvent {
+                let trackerRecords = records.filter { $0.id == tracker.id }
+                if trackerRecords.isEmpty {
                     trackers.append(tracker)
+                } else {
+                    let hasRecordOnSelectedDate = trackerRecords.contains { record in
+                        Calendar.current.isDate(record.date, inSameDayAs: selectedDate)
+                    }
+                    if hasRecordOnSelectedDate {
+                        trackers.append(tracker)
+                    }
                 }
             } else {
                 for day in tracker.schedule {
-                    if day == weekDays {
+                    if day == weekday {
                         trackers.append(tracker)
                     }
                 }
             }
         }
-        
         let categoryWithVisibleTrackers = TrackerCategory(name: categories.first!.name, trackers: trackers)
         visibleCategory.append(categoryWithVisibleTrackers)
     }
@@ -123,13 +80,7 @@ final class TrackersService {
         visibleCategory.removeAll()
     }
     func createNewTracker(tracker: Tracker) {
-        var trackers: [Tracker] = []
-        guard let list = categories.first else {return}
-        for tracker in list.trackers{
-            trackers.append(tracker)
-        }
-        trackers.append(tracker)
-        categories = [TrackerCategory(name: "Важное", trackers: trackers)]
+        trackerCategoryStore.addTrackerToCategory(tracker, category: "Важное")
     }
     func createNewCategory(newCategoty: TrackerCategory) {
         // TO DO
@@ -146,27 +97,23 @@ final class TrackersService {
     func titleForSection(section: Int) -> String {
         visibleCategory[section].name
     }
-    // MARK: - Private Methods
-    private func convertNumberToWeekDay(number: Int) -> Weekday {
-        var day: Weekday = .monday
-        switch number {
-        case 2:
-            day = .monday
-        case 3:
-            day = .tuesday
-        case 4:
-            day = .wednesday
-        case 5:
-            day = .thursday
-        case 6:
-            day = .friday
-        case 7:
-            day = .saturday
-        case 1:
-            day = .sunday
-        default:
-            break
-        }
-        return day
+    func addTrackerRecord(_ id: UUID, date: Date) {
+        let trackerRecord = TrackerRecord(id: id, date: date)
+        try? trackerRecordStore.addNewTrackerRecord(trackerRecord)
     }
+    
+    func removeTrackerRecord(_ id: UUID, date: Date) {
+        let trackerRecord = TrackerRecord(id: id, date: date)
+        try? trackerRecordStore.removeTrackerRecord(trackerRecord)
+    }
+    
+    func isTrackerRecordExist(_ id: UUID, date: Date) -> Bool {
+        let trackerRecord = TrackerRecord(id: id, date: date)
+        return (try? trackerRecordStore.recordExists(trackerRecord)) ?? false
+    }
+    
+    func getRecords() -> [TrackerRecord] {
+        return trackerRecordStore.getRecords()
+    }
+    // MARK: - Private Methods
 }
