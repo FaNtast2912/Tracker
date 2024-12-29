@@ -29,14 +29,7 @@ protocol TrackerCategoryStoreDelegate: AnyObject {
 }
 
 final class TrackerCategoryStore: NSObject {
-    private let uiColorMarshalling = UIColorMarshalling()
-    private let trackerStore = TrackerStore()
-    private let context: NSManagedObjectContext
-    private var fetchedResultsController: NSFetchedResultsController<TrackerCategoryCoreData>!
-    private var insertedIndexes: IndexSet?
-    private var deletedIndexes: IndexSet?
-    private var updatedIndexes: IndexSet?
-    private var movedIndexes: Set<TrackerStoreUpdate.Move>?
+    // MARK: - Public Properties
     var trackersCategories: [TrackerCategory] {
         guard let objects = self.fetchedResultsController.fetchedObjects,
               let trackers = try? objects.map({ trackerCoreData in
@@ -45,16 +38,11 @@ final class TrackerCategoryStore: NSObject {
         return trackers
     }
     weak var delegate: TrackerCategoryStoreDelegate?
-    
-    convenience override init() {
-        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-        try! self.init(context: context)
-    }
-
-    init(context: NSManagedObjectContext) throws {
-        self.context = context
-        super.init()
-        
+    // MARK: - Private Properties
+    private let uiColorMarshalling = UIColorMarshalling()
+    private let trackerStore = TrackerStore()
+    private let context: NSManagedObjectContext
+    private var fetchedResultsController: NSFetchedResultsController<TrackerCategoryCoreData> {
         let fetchRequest = TrackerCategoryCoreData.fetchRequest()
         fetchRequest.sortDescriptors = [
             NSSortDescriptor(keyPath: \TrackerCategoryCoreData.name, ascending: true)
@@ -66,14 +54,39 @@ final class TrackerCategoryStore: NSObject {
             cacheName: nil
         )
         controller.delegate = self
-        self.fetchedResultsController = controller
-        try controller.performFetch()
-        
+        try? controller.performFetch()
+        return controller
+    }
+    private var insertedIndexes: IndexSet?
+    private var deletedIndexes: IndexSet?
+    private var updatedIndexes: IndexSet?
+    private var movedIndexes: Set<TrackerStoreUpdate.Move>?
+    // MARK: - Initializers
+    convenience override init() {
+        let context = DataBaseStore.shared.persistentContainer.viewContext
+        self.init(context: context)
+    }
+
+    init(context: NSManagedObjectContext) {
+        self.context = context
+        super.init()
         if trackersCategories.isEmpty {
             try? addNewTrackerCategory(TrackerCategory(name: "Важное", trackers: []))
         }
     }
-    
+    // MARK: - Overrides Methods
+
+    // MARK: - IB Actions
+
+    // MARK: - Public Methods
+    func addTrackerToCategory(_ tracker: Tracker, category name: String) {
+        let categoryRaw = fetchedResultsController.fetchedObjects?.first(where: {$0.name == name} )
+        try? trackerStore.addNewTracker(tracker)
+        let trackerCoreData = trackerStore.convertTracker(from: tracker)
+        categoryRaw?.addToTrackers(trackerCoreData)
+        save()
+    }
+    // MARK: - Private Methods
     private func addNewTrackerCategory(_ trackerCategory: TrackerCategory) throws {
         let trackerCategoryCoreData = TrackerCategoryCoreData(context: context)
         trackerCategoryCoreData.name = trackerCategory.name
@@ -101,15 +114,6 @@ final class TrackerCategoryStore: NSObject {
         return TrackerCategory(name: name, trackers: trackers)
     }
     
-
-    func addTrackerToCategory(_ tracker: Tracker, category name: String) {
-        let categoryRaw = fetchedResultsController.fetchedObjects?.first(where: {$0.name == name} )
-        try? trackerStore.addNewTracker(tracker)
-        let trackerCoreData = trackerStore.convertTracker(from: tracker)
-        categoryRaw?.addToTrackers(trackerCoreData)
-        save()
-    }
-    
     private func save() {
         if context.hasChanges {
             do {
@@ -120,21 +124,22 @@ final class TrackerCategoryStore: NSObject {
             }
         }
     }
-    
 }
 
 extension TrackerCategoryStore: NSFetchedResultsControllerDelegate {
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-//        insertedIndexes = IndexSet()
-//        deletedIndexes = IndexSet()
-//        updatedIndexes = IndexSet()
-//        movedIndexes = Set<EmojiMixStoreUpdate.Move>()
+        //TO DO
+        insertedIndexes = IndexSet()
+        deletedIndexes = IndexSet()
+        updatedIndexes = IndexSet()
+//        movedIndexes = Set<TrackerCategoryStoreUpdate.Move>()
     }
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        //TO DO
 //        delegate?.store(
 //            self,
-//            didUpdate: EmojiMixStoreUpdate(
+//            didUpdate: TrackerCategoryStoreUpdate(
 //                insertedIndexes: insertedIndexes!,
 //                deletedIndexes: deletedIndexes!,
 //                updatedIndexes: updatedIndexes!,

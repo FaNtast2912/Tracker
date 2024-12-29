@@ -13,21 +13,37 @@ private enum TrackerRecordStoreError: Error {
 }
 
 final class TrackerRecordStore: NSObject {
-    
+    // MARK: - Public Properties
+
+    // MARK: - Private Properties
     private let context: NSManagedObjectContext
-    private var fetchedResultsController: NSFetchedResultsController<TrackerRecordCoreData>!
-    
-    var records: [TrackerRecord] {
-        guard let objects = self.fetchedResultsController.fetchedObjects,
-              let trackers = try? objects.map({ trackerRecordCoreData in
-                  try self.record(from: trackerRecordCoreData)
-              }) else {
-            print("в записях пусто!")
-            return []
-        }
-        return trackers
+    private var fetchedResultsController: NSFetchedResultsController<TrackerRecordCoreData> {
+        let fetchRequest = TrackerRecordCoreData.fetchRequest()
+        fetchRequest.sortDescriptors = [
+            NSSortDescriptor(keyPath: \TrackerRecordCoreData.date, ascending: true)
+        ]
+        let controller = NSFetchedResultsController(
+            fetchRequest: fetchRequest,
+            managedObjectContext: context,
+            sectionNameKeyPath: nil,
+            cacheName: nil
+        )
+        try? controller.performFetch()
+        return controller
+    }
+    // MARK: - Initializers
+    convenience override init() {
+        let context = DataBaseStore.shared.persistentContainer.viewContext
+        self.init(context: context)
     }
     
+    init(context: NSManagedObjectContext) {
+        self.context = context
+        super.init()
+    }
+    // MARK: - Overrides Methods
+
+    // MARK: - Public Methods
     func getRecords() -> [TrackerRecord] {
         try? fetchedResultsController.performFetch()
         guard let objects = fetchedResultsController.fetchedObjects,
@@ -35,47 +51,6 @@ final class TrackerRecordStore: NSObject {
         else { return [] }
         return records
     }
-    
-    convenience override init() {
-        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-        try! self.init(context: context)
-    }
-    
-    init(context: NSManagedObjectContext) throws {
-        self.context = context
-        super.init()
-        
-        let fetchRequest = TrackerRecordCoreData.fetchRequest()
-        fetchRequest.sortDescriptors = [
-            NSSortDescriptor(keyPath: \TrackerRecordCoreData.date, ascending: true)
-        ]
-        let controller = NSFetchedResultsController(
-            fetchRequest: fetchRequest,
-            managedObjectContext: context,
-            sectionNameKeyPath: nil,
-            cacheName: nil
-        )
-        self.fetchedResultsController = controller
-        try controller.performFetch()
-    }
-    
-    private func setupFetchedResultsController() {
-        let fetchRequest = TrackerRecordCoreData.fetchRequest()
-        fetchRequest.sortDescriptors = [
-            NSSortDescriptor(keyPath: \TrackerRecordCoreData.date, ascending: true)
-        ]
-        
-        let controller = NSFetchedResultsController(
-            fetchRequest: fetchRequest,
-            managedObjectContext: context,
-            sectionNameKeyPath: nil,
-            cacheName: nil
-        )
-        
-        self.fetchedResultsController = controller
-        try? controller.performFetch()
-    }
-    
     
     func addNewTrackerRecord(_ trackerRecord: TrackerRecord) throws {
         let trackerRecordCoreData = TrackerRecordCoreData(context: context)
@@ -110,6 +85,7 @@ final class TrackerRecordStore: NSObject {
         let count = try context.count(for: fetchRequest)
         return count > 0
     }
+    // MARK: - Private Methods
     
     private func save() {
         if context.hasChanges {
@@ -134,5 +110,4 @@ final class TrackerRecordStore: NSObject {
         
         return TrackerRecord(id: id, date: date)
     }
-    
 }

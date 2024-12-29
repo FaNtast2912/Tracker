@@ -8,8 +8,6 @@ import UIKit
 import CoreData
 
 final class TrackersViewController: UIViewController, UISearchResultsUpdating, UISearchControllerDelegate, TrackerCellDelegate, TrackersDelegateProtocol {
-    // MARK: - Public Properties
-    
     // MARK: - Private Properties
     // MARK: UI
     private lazy var trackersCollectionView: UICollectionView = {
@@ -75,6 +73,7 @@ final class TrackersViewController: UIViewController, UISearchResultsUpdating, U
         searchController.searchResultsUpdater = self
         searchController.delegate = self
         searchController.searchBar.setValue("Отмена", forKey: "cancelButtonText")
+        searchController.searchBar.searchTextField.tintColor = .ypBlack
         return searchController
     }
     private var isSearchBarEmpty: Bool {

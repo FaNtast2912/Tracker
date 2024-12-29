@@ -51,7 +51,7 @@ final class NewTrackerViewContoller: UIViewController, NewCategoryDelegateProtoc
         textField.clearButtonMode = .whileEditing
         textField.placeholder = "Введите название трекера"
         textField.font = UIFont(name: "SF Pro", size: 17)
-        textField.tintColor = .ypGray
+        textField.tintColor = .ypBlue
         textField.backgroundColor = .ypBackground
         textField.layer.cornerRadius = 16
         textField.delegate = self

@@ -41,5 +41,7 @@ final class TabBarController: UITabBarController {
         uITabBarAppearance.stackedLayoutAppearance.selected.iconColor = .ypBlue
         uITabBarAppearance.stackedLayoutAppearance.disabled.iconColor = .ypGray
         tabBar.standardAppearance = uITabBarAppearance
+        tabBar.layer.borderWidth = 1
+        tabBar.layer.borderColor = UIColor.ypGray.cgColor
     }
 }

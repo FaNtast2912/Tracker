@@ -73,7 +73,7 @@ final class TrackersService {
                 }
             }
         }
-        let categoryWithVisibleTrackers = TrackerCategory(name: categories.first!.name, trackers: trackers)
+        let categoryWithVisibleTrackers = TrackerCategory(name: firstCategory.name, trackers: trackers)
         visibleCategory.append(categoryWithVisibleTrackers)
     }
     func clearVisibleTrackers() {

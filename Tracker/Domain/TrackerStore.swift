@@ -31,32 +31,12 @@ protocol TrackerStoreDelegate: AnyObject {
 }
 
 final class TrackerStore: NSObject {
+    // MARK: - Public Properties
+    weak var delegate: TrackerStoreDelegate?
+    // MARK: - Private Properties
     private let uiColorMarshalling = UIColorMarshalling()
     private let context: NSManagedObjectContext
-    private var fetchedResultsController: NSFetchedResultsController<TrackerCoreData>!
-    private var insertedIndexes: IndexSet?
-    private var deletedIndexes: IndexSet?
-    private var updatedIndexes: IndexSet?
-    private var movedIndexes: Set<TrackerStoreUpdate.Move>?
-    private var trackers: [Tracker] {
-        guard let objects = self.fetchedResultsController.fetchedObjects,
-              let trackers = try? objects.map({ trackerCoreData in
-                  try self.tracker(from: trackerCoreData)
-              }) else {return [] }
-        return trackers
-    }
-    weak var delegate: TrackerStoreDelegate?
-    
-    
-    convenience override init() {
-        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-        try! self.init(context: context)
-    }
-
-    init(context: NSManagedObjectContext) throws {
-        self.context = context
-        super.init()
-        
+    private var fetchedResultsController: NSFetchedResultsController<TrackerCoreData> {
         let fetchRequest = TrackerCoreData.fetchRequest()
         fetchRequest.sortDescriptors = [
             NSSortDescriptor(keyPath: \TrackerCoreData.category, ascending: true)
@@ -68,10 +48,33 @@ final class TrackerStore: NSObject {
             cacheName: nil
         )
         controller.delegate = self
-        self.fetchedResultsController = controller
-        try controller.performFetch()
+        try? controller.performFetch()
+        return controller
     }
-    
+    private var insertedIndexes: IndexSet?
+    private var deletedIndexes: IndexSet?
+    private var updatedIndexes: IndexSet?
+    private var movedIndexes: Set<TrackerStoreUpdate.Move>?
+    private var trackers: [Tracker] {
+        guard let objects = self.fetchedResultsController.fetchedObjects,
+              let trackers = try? objects.map({ trackerCoreData in
+                  try self.tracker(from: trackerCoreData)
+              }) else {return [] }
+        return trackers
+    }
+    // MARK: - Initializers
+    convenience override init() {
+        let context = DataBaseStore.shared.persistentContainer.viewContext
+        self.init(context: context)
+    }
+
+    init(context: NSManagedObjectContext) {
+        self.context = context
+        super.init()
+    }
+    // MARK: - Overrides Methods
+
+    // MARK: - Public Methods
     func addNewTracker(_ tracker: Tracker) throws {
         let trackerCoreData = TrackerCoreData(context: context)
         trackerCoreData.color = uiColorMarshalling.hexString(from: tracker.color)
@@ -94,7 +97,6 @@ final class TrackerStore: NSObject {
         return trackerCoreData
     }
     
-    
     func tracker(from trackerCoreData: TrackerCoreData) throws -> Tracker {
         guard let name = trackerCoreData.name else {
             throw TrackerStoreError.decodingErrorInvalidName
@@ -113,7 +115,7 @@ final class TrackerStore: NSObject {
         }
         let isEvent = trackerCoreData.isEvent
         let color = uiColorMarshalling.color(from: colorRaw)
-        let schedule = scheduleRaw as! [Int]
+        let schedule = scheduleRaw as? [Int] ?? []
         return Tracker(
             name: name,
             id: id,
@@ -123,7 +125,7 @@ final class TrackerStore: NSObject {
             isEvent: isEvent
         )
     }
-    
+    // MARK: - Private Methods
     private func save() {
         if context.hasChanges {
             do {
@@ -134,7 +136,6 @@ final class TrackerStore: NSObject {
             }
         }
     }
-    
 }
 
 extension TrackerStore: NSFetchedResultsControllerDelegate {
@@ -146,13 +147,14 @@ extension TrackerStore: NSFetchedResultsControllerDelegate {
     }
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        guard let insertedIndexesUpdate = insertedIndexes, let deletedIndexesUpdate = deletedIndexes, let updatedIndexesUpdate = updatedIndexes, let movedIndexesUpdate = movedIndexes else { return }
         delegate?.store(
             self,
             didUpdate: TrackerStoreUpdate(
-                insertedIndexes: insertedIndexes!,
-                deletedIndexes: deletedIndexes!,
-                updatedIndexes: updatedIndexes!,
-                movedIndexes: movedIndexes!
+                insertedIndexes: insertedIndexesUpdate,
+                deletedIndexes: deletedIndexesUpdate,
+                updatedIndexes: updatedIndexesUpdate,
+                movedIndexes: movedIndexesUpdate
             )
         )
         insertedIndexes = nil
