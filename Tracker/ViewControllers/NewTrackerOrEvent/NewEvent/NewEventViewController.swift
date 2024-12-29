@@ -7,12 +7,16 @@
 import UIKit
 
 final class NewEventViewController: UIViewController, NewCategoryDelegateProtocol {
+    
     // MARK: - Public Properties
     
     // MARK: - Private Properties
+    
     private weak var delegate: TrackersDelegateProtocol?
     private let trackerStorage = TrackersService.shared
+    
     // MARK: UI
+    
     private lazy var newEventCollection: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
@@ -163,7 +167,9 @@ final class NewEventViewController: UIViewController, NewCategoryDelegateProtoco
         .colorSelection1, .colorSelection2, .colorSelection3, .colorSelection4, .colorSelection5,.colorSelection6,
         .colorSelection7, .colorSelection8, .colorSelection9, .colorSelection10, .colorSelection11, .colorSelection12,
         .colorSelection13, .colorSelection14, .colorSelection15, .colorSelection16, .colorSelection17, .colorSelection18]
+    
     // MARK: - Overrides Methods
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .ypWhite
@@ -190,7 +196,9 @@ final class NewEventViewController: UIViewController, NewCategoryDelegateProtoco
         delegate?.didReceiveRefreshRequest()
         view?.window?.rootViewController?.dismiss(animated: true)
     }
+    
     // MARK: - Public Methods
+    
     func categoryDidSelect(category: TrackerCategory) {
         selectedCategory = category
         newEventTable.reloadData()
@@ -199,7 +207,9 @@ final class NewEventViewController: UIViewController, NewCategoryDelegateProtoco
     func setDelegate(delegate: TrackersDelegateProtocol) {
         self.delegate = delegate
     }
+    
     // MARK: - Private Methods
+    
     private func canCreate() {
         if selectedCategory != nil, selectedNewEventTitle != nil, selectedColorIndex != nil, selectedEmojiIndex != nil {
             makeTrackerButton.isEnabled = true
@@ -349,15 +359,15 @@ extension NewEventViewController: UICollectionViewDelegate {
         let sectionNumber = indexPath.section
         switch sectionNumber {
         case 0:
-            if selectedEmojiIndex != nil {
-                guard let cell = collectionView.cellForItem(at: IndexPath(row: selectedEmojiIndex!, section: sectionNumber)) as? NewTrackerOrEventCell else { return }
+            if let selectedEmojiIndex {
+                guard let cell = collectionView.cellForItem(at: IndexPath(row: selectedEmojiIndex, section: sectionNumber)) as? NewTrackerOrEventCell else { return }
                 cell.deselectEmojiCell()
             }
             cell.selectEmojiCell()
             selectedEmojiIndex = indexPath.row
         case 1:
-            if selectedColorIndex != nil {
-                guard let cell = collectionView.cellForItem(at: IndexPath(row: selectedColorIndex!, section: sectionNumber)) as? NewTrackerOrEventCell else { return }
+            if let selectedColorIndex {
+                guard let cell = collectionView.cellForItem(at: IndexPath(row: selectedColorIndex, section: sectionNumber)) as? NewTrackerOrEventCell else { return }
                 cell.deselectColorCell()
             }
             cell.selectColorCell()

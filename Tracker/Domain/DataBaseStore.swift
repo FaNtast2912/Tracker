@@ -7,9 +7,10 @@
 import CoreData
 
 final class DataBaseStore {
+    
     // MARK: - Public Properties
     static let shared = DataBaseStore()
-    // MARK: - Private Properties
+    
     lazy var persistentContainer: NSPersistentContainer = {
         let container = NSPersistentContainer(name: "Library")
         container.loadPersistentStores(completionHandler: { (storeDescription, error) in
@@ -19,9 +20,14 @@ final class DataBaseStore {
         })
         return container
     }()
+    // MARK: - Private Properties
+
     // MARK: - Initializers
+    
     private init() {}
+    
     // MARK: - Public Methods
+    
     func saveContext() {
         let context = persistentContainer.viewContext
         if context.hasChanges {
@@ -34,5 +40,6 @@ final class DataBaseStore {
             }
         }
     }
+    
     // MARK: - Private Methods
 }

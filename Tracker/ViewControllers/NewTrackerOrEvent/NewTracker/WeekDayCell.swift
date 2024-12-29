@@ -13,6 +13,7 @@ final class WeekDayCell: UITableViewCell {
     // MARK: - Public Properties
 
     // MARK: - Private Properties
+    
     private lazy var title: UILabel = {
         let title = UILabel()
         return title
@@ -36,7 +37,9 @@ final class WeekDayCell: UITableViewCell {
     ]
     private var dayOfWeek: Int?
     private var wasChosen: Bool = false
+    
     // MARK: - Initializers
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setUI()
@@ -45,14 +48,18 @@ final class WeekDayCell: UITableViewCell {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
     // MARK: - Overrides Methods
 
     // MARK: - IB Actions
+    
     @objc private func onOffAction(_ sender: UISwitch) {
         guard let dayOfWeek else { return }
             delegate?.didReceiveWeekDay(weekDay: dayOfWeek)
     }
+    
     // MARK: - Public Methods
+    
     func configureCell(indexPath: IndexPath, delegate: WeekDayCellDelegateProtocol) {
         dayOfWeek = indexPath.row + 1
         guard let dayOfWeek else { return }
@@ -60,7 +67,9 @@ final class WeekDayCell: UITableViewCell {
         backgroundColor = .ypBackground
         title.text = weekDaysString[dayOfWeek - 1]
     }
+    
     // MARK: - Private Methods
+    
     private func setUI() {
         contentView.addSubview(title)
         contentView.addSubview(switcher)

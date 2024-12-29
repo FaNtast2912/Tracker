@@ -7,10 +7,15 @@
 import UIKit
 
 final class NewTrackerOrEventCell: UICollectionViewCell {
+    
     // MARK: - Public Properties
+    
     static let identifier = "NewTrackerOrEventCell"
+    
     // MARK: - Private Properties
+    
     // UI
+    
     private var colorCellBackground: UIColor?
     private lazy var colorView: UIView = {
         let view = UIView()
@@ -53,7 +58,9 @@ final class NewTrackerOrEventCell: UICollectionViewCell {
     private var allConstraintsArray: [NSLayoutConstraint] {
         colorViewConstraint + emojiLabelConstraint
     }
+    
     // MARK: - Initializers
+    
     required init?(coder: NSCoder) {
         super.init(coder: coder)
     }
@@ -61,9 +68,11 @@ final class NewTrackerOrEventCell: UICollectionViewCell {
         super.init(frame: frame)
         self.setUI(to: allUiElementsArray, set: allConstraintsArray)
     }
+    
     // MARK: - IB Actions
     
     // MARK: - Public Methods
+    
     func configureColorCell(color: UIColor) {
         self.colorView.backgroundColor = color
         self.emojiLabel.backgroundColor = .clear
@@ -89,5 +98,6 @@ final class NewTrackerOrEventCell: UICollectionViewCell {
     func deselectColorCell() {
         layer.borderWidth = 0
     }
+    
     // MARK: - Private Methods
 }

@@ -31,9 +31,13 @@ protocol TrackerStoreDelegate: AnyObject {
 }
 
 final class TrackerStore: NSObject {
+    
     // MARK: - Public Properties
+    
     weak var delegate: TrackerStoreDelegate?
+    
     // MARK: - Private Properties
+    
     private let uiColorMarshalling = UIColorMarshalling()
     private let context: NSManagedObjectContext
     private var fetchedResultsController: NSFetchedResultsController<TrackerCoreData> {
@@ -62,7 +66,9 @@ final class TrackerStore: NSObject {
               }) else {return [] }
         return trackers
     }
+    
     // MARK: - Initializers
+    
     convenience override init() {
         let context = DataBaseStore.shared.persistentContainer.viewContext
         self.init(context: context)
@@ -72,9 +78,11 @@ final class TrackerStore: NSObject {
         self.context = context
         super.init()
     }
+    
     // MARK: - Overrides Methods
 
     // MARK: - Public Methods
+    
     func addNewTracker(_ tracker: Tracker) throws {
         let trackerCoreData = TrackerCoreData(context: context)
         trackerCoreData.color = uiColorMarshalling.hexString(from: tracker.color)
@@ -125,7 +133,9 @@ final class TrackerStore: NSObject {
             isEvent: isEvent
         )
     }
+    
     // MARK: - Private Methods
+    
     private func save() {
         if context.hasChanges {
             do {

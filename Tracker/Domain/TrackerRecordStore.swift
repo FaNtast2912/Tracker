@@ -13,9 +13,11 @@ private enum TrackerRecordStoreError: Error {
 }
 
 final class TrackerRecordStore: NSObject {
+    
     // MARK: - Public Properties
 
     // MARK: - Private Properties
+    
     private let context: NSManagedObjectContext
     private var fetchedResultsController: NSFetchedResultsController<TrackerRecordCoreData> {
         let fetchRequest = TrackerRecordCoreData.fetchRequest()
@@ -31,7 +33,9 @@ final class TrackerRecordStore: NSObject {
         try? controller.performFetch()
         return controller
     }
+    
     // MARK: - Initializers
+    
     convenience override init() {
         let context = DataBaseStore.shared.persistentContainer.viewContext
         self.init(context: context)
@@ -41,9 +45,11 @@ final class TrackerRecordStore: NSObject {
         self.context = context
         super.init()
     }
+    
     // MARK: - Overrides Methods
 
     // MARK: - Public Methods
+    
     func getRecords() -> [TrackerRecord] {
         try? fetchedResultsController.performFetch()
         guard let objects = fetchedResultsController.fetchedObjects,
@@ -85,6 +91,7 @@ final class TrackerRecordStore: NSObject {
         let count = try context.count(for: fetchRequest)
         return count > 0
     }
+    
     // MARK: - Private Methods
     
     private func save() {

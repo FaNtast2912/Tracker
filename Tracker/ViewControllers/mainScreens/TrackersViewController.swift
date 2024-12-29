@@ -5,10 +5,11 @@
 //  Created by Maksim Zakharov on 23.11.2024.
 //
 import UIKit
-import CoreData
 
 final class TrackersViewController: UIViewController, UISearchResultsUpdating, UISearchControllerDelegate, TrackerCellDelegate, TrackersDelegateProtocol {
+    
     // MARK: - Private Properties
+    
     // MARK: UI
     private lazy var trackersCollectionView: UICollectionView = {
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
@@ -101,9 +102,11 @@ final class TrackersViewController: UIViewController, UISearchResultsUpdating, U
         guard let date = calendar.date(from: dateComponents) else { return Date() }
         return date
     }
+    
     // MARK: - Initializers
     
     // MARK: - Overrides Methods
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         let date = Date()
@@ -114,7 +117,9 @@ final class TrackersViewController: UIViewController, UISearchResultsUpdating, U
         refreshCollection()
         trackersService.trackerCategoryStore.delegate = self
     }
+    
     // MARK: - IB Actions
+    
     @objc
     func changeDate(_ sender: UIDatePicker) {
         let selectedDate = sender.date
@@ -131,7 +136,9 @@ final class TrackersViewController: UIViewController, UISearchResultsUpdating, U
         let chooseTrackerTypeNavigationController = UINavigationController(rootViewController: viewControllerToPresent)
         self.present(chooseTrackerTypeNavigationController, animated: true)
     }
+    
     // MARK: - Public Methods
+    
     func didReceiveRefreshRequest() {
         showTrackersInDate(currentDate)
         refreshCollection()

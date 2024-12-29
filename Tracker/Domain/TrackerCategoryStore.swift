@@ -29,7 +29,9 @@ protocol TrackerCategoryStoreDelegate: AnyObject {
 }
 
 final class TrackerCategoryStore: NSObject {
+    
     // MARK: - Public Properties
+    
     var trackersCategories: [TrackerCategory] {
         guard let objects = self.fetchedResultsController.fetchedObjects,
               let trackers = try? objects.map({ trackerCoreData in
@@ -38,7 +40,9 @@ final class TrackerCategoryStore: NSObject {
         return trackers
     }
     weak var delegate: TrackerCategoryStoreDelegate?
+    
     // MARK: - Private Properties
+    
     private let uiColorMarshalling = UIColorMarshalling()
     private let trackerStore = TrackerStore()
     private let context: NSManagedObjectContext
@@ -61,7 +65,9 @@ final class TrackerCategoryStore: NSObject {
     private var deletedIndexes: IndexSet?
     private var updatedIndexes: IndexSet?
     private var movedIndexes: Set<TrackerStoreUpdate.Move>?
+    
     // MARK: - Initializers
+    
     convenience override init() {
         let context = DataBaseStore.shared.persistentContainer.viewContext
         self.init(context: context)
@@ -74,11 +80,13 @@ final class TrackerCategoryStore: NSObject {
             try? addNewTrackerCategory(TrackerCategory(name: "Важное", trackers: []))
         }
     }
+    
     // MARK: - Overrides Methods
 
     // MARK: - IB Actions
 
     // MARK: - Public Methods
+    
     func addTrackerToCategory(_ tracker: Tracker, category name: String) {
         let categoryRaw = fetchedResultsController.fetchedObjects?.first(where: {$0.name == name} )
         try? trackerStore.addNewTracker(tracker)
@@ -87,6 +95,7 @@ final class TrackerCategoryStore: NSObject {
         save()
     }
     // MARK: - Private Methods
+    
     private func addNewTrackerCategory(_ trackerCategory: TrackerCategory) throws {
         let trackerCategoryCoreData = TrackerCategoryCoreData(context: context)
         trackerCategoryCoreData.name = trackerCategory.name
@@ -136,7 +145,7 @@ extension TrackerCategoryStore: NSFetchedResultsControllerDelegate {
     }
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        //TO DO
+        //TO DO UI refresh table view
 //        delegate?.store(
 //            self,
 //            didUpdate: TrackerCategoryStoreUpdate(

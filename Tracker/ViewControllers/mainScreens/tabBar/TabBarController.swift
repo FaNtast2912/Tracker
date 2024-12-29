@@ -8,7 +8,9 @@ import Foundation
 import UIKit
 
 final class TabBarController: UITabBarController {
+    
     // MARK: - Overrides Methods
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         

@@ -8,9 +8,9 @@
 import UIKit
 
 final class TrackersService {
-    // MARK: - IB Outlets
     
     // MARK: - Public Properties
+    
     static let shared = TrackersService()
     var trackerCategoryStore: TrackerCategoryStore {
             return _trackerCategoryStore
@@ -37,10 +37,13 @@ final class TrackersService {
     var categories : [TrackerCategory] {
         return trackerCategoryStore.trackersCategories
     }
+    
     // MARK: - Private Properties
     
     // MARK: - Initializers
+    
     private init() { }
+    
     // MARK: - Overrides Methods
     
     // MARK: - IB Actions
@@ -115,5 +118,7 @@ final class TrackersService {
     func getRecords() -> [TrackerRecord] {
         return trackerRecordStore.getRecords()
     }
+    
     // MARK: - Private Methods
+    
 }

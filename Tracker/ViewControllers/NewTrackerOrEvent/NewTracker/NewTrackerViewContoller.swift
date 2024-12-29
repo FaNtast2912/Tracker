@@ -11,9 +11,12 @@ final class NewTrackerViewContoller: UIViewController, NewCategoryDelegateProtoc
     // MARK: - Public Properties
     
     // MARK: - Private Properties
+    
     private var delegate: TrackersDelegateProtocol?
     private let trackerStorage = TrackersService.shared
+    
     // MARK: UI
+    
     private lazy var newTrackerCollection: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
@@ -157,13 +160,17 @@ final class NewTrackerViewContoller: UIViewController, NewCategoryDelegateProtoc
     private var selectedNewTrackerTitle: String?
     private var selectedEmojiIndex: Int?
     private var selectedColorIndex: Int?
+    
     // MARK: - Overrides Methods
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .ypWhite
         self.setUI(to: allUiElementsArray, set: allConstraintsArray)
     }
+    
     // MARK: - IB Actions
+    
     @objc
     func cancelButtonTapped() {
         view?.window?.rootViewController?.dismiss(animated: true)
@@ -183,7 +190,9 @@ final class NewTrackerViewContoller: UIViewController, NewCategoryDelegateProtoc
         delegate?.didReceiveRefreshRequest()
         view?.window?.rootViewController?.dismiss(animated: true)
     }
+    
     // MARK: - Public Methods
+    
     func setDelegate(delegate: TrackersDelegateProtocol) {
         self.delegate = delegate
     }
@@ -197,7 +206,9 @@ final class NewTrackerViewContoller: UIViewController, NewCategoryDelegateProtoc
         newTrackersTable.reloadData()
         canCreate()
     }
+    
     // MARK: - Private Methods
+    
     private func getStringFromWeekDays(weekDays: [Int])  -> String {
         let count = weekDays.count
         let isAllSelected = count == 7
@@ -389,15 +400,15 @@ extension NewTrackerViewContoller: UICollectionViewDelegate {
         let sectionNumber = indexPath.section
         switch sectionNumber {
         case 0:
-            if selectedEmojiIndex != nil {
-                guard let cell = collectionView.cellForItem(at: IndexPath(row: selectedEmojiIndex!, section: sectionNumber)) as? NewTrackerOrEventCell else { return }
+            if let selectedEmojiIndex {
+                guard let cell = collectionView.cellForItem(at: IndexPath(row: selectedEmojiIndex, section: sectionNumber)) as? NewTrackerOrEventCell else { return }
                 cell.deselectEmojiCell()
             }
             cell.selectEmojiCell()
             selectedEmojiIndex = indexPath.row
         case 1:
-            if selectedColorIndex != nil {
-                guard let cell = collectionView.cellForItem(at: IndexPath(row: selectedColorIndex!, section: sectionNumber)) as? NewTrackerOrEventCell else { return }
+            if let selectedColorIndex {
+                guard let cell = collectionView.cellForItem(at: IndexPath(row: selectedColorIndex, section: sectionNumber)) as? NewTrackerOrEventCell else { return }
                 cell.deselectColorCell()
             }
             cell.selectColorCell()
