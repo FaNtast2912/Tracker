@@ -9,6 +9,7 @@ final class ChooseTrackerTypeViewController: UIViewController {
     // MARK: - Public Properties
     
     // MARK: - Private Properties
+    
     // MARK: UI
     var delegateToViewControllers: TrackersDelegateProtocol?
     private lazy var habitButton: UIButton = {
@@ -61,14 +62,18 @@ final class ChooseTrackerTypeViewController: UIViewController {
     private var allConstraintsArray: [NSLayoutConstraint] {
         habitButtonConstraint + eventButtonConstraint
     }
+    
     // MARK: - Overrides Methods
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .ypWhite
         self.setUI(to: allUiElementsArray, set: allConstraintsArray)
 
     }
+    
     // MARK: - IB Actions
+    
     @objc
     private func habitButtonTapped() {
         let viewControllerToPresent = NewTrackerViewContoller()

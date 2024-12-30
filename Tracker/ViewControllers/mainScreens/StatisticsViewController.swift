@@ -11,7 +11,8 @@ final class StatisticsViewController: UIViewController {
     // MARK: - Public Properties
     
     // MARK: - Private Properties
-    // MARK: UI
+    
+    // UI
     private lazy var trackersStubImage: UIImageView = {
         let imageView = UIImageView()
         imageView.frame.size = CGSize(width: 80, height: 80)
@@ -47,13 +48,18 @@ final class StatisticsViewController: UIViewController {
     private var allConstraintsArray: [NSLayoutConstraint] {
         trackersStubImageConstraint + trackersStubLabelConstraint
     }
+    
     // MARK: - Overrides Methods
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.backgroundColor = .ypWhite
         self.setUI(to: allUiElementsArray, set: allConstraintsArray)
         setupNavBar()
-    } 
+    }
+    
     // MARK: - Private Methods
+    
     private func setupNavBar() {
         // left button
         navigationItem.leftBarButtonItem?.tintColor = .ypBlack

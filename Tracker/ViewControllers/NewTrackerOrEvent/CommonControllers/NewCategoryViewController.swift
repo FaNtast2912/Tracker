@@ -7,10 +7,14 @@
 import UIKit
 
 final class NewCategoryViewController: UIViewController {
+    
     // MARK: - Public Properties
+    
     weak var delegate: NewCategoryDelegateProtocol?
     // MARK: - Private Properties
+    
     // MARK: UI
+    
     private lazy var categoriesTable: UITableView = {
         let tableView = UITableView()
         tableView.layer.cornerRadius = 16
@@ -96,7 +100,9 @@ final class NewCategoryViewController: UIViewController {
     }
     private var categories: [TrackerCategory] = []
     private var selectedCategories: TrackerCategory?
+    
     // MARK: - Overrides Methods
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         let mockCategory = TrackerCategory(name: "Важное", trackers: [])
@@ -110,13 +116,18 @@ final class NewCategoryViewController: UIViewController {
         }
         
     }
+    
     // MARK: - IB Actions
+    
     @objc
     func addNewCategoryButtonTapped() {
-        // TO DO
+        // TO DO add new category
     }
+    
     // MARK: - Public Methods
+    
     // MARK: - Private Methods
+    
 }
 
 extension NewCategoryViewController: UITableViewDataSource {

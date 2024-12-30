@@ -6,12 +6,15 @@
 //
 import UIKit
 final class ScheduleViewController:  UIViewController, WeekDayCellDelegateProtocol {
+    
     // MARK: - Public Properties
     
     // MARK: - Private Properties
+    
     // MARK: UI
+    
     private var delegate: ScheduleDelegateProtocol?
-    private var scheduleHelper = Schedule()
+    private var schedule: Set<Int> = []
     private lazy var scheduleTable: UITableView = {
         let tableView = UITableView()
         tableView.layer.cornerRadius = 16
@@ -66,29 +69,40 @@ final class ScheduleViewController:  UIViewController, WeekDayCellDelegateProtoc
     private var allConstraintsArray: [NSLayoutConstraint] {
         scheduleDoneButtonConstraint + scheduleTableConstraint
     }
-    private var selectedDays: Schedule?
+
     // MARK: - Overrides Methods
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .ypWhite
         self.setUI(to: allUiElementsArray, set: allConstraintsArray)
     }
+    
     // MARK: - IB Actions
+    
     @objc
     func scheduleDoneButtonTapped() {
-        delegate?.didReceiveWeekDays(weekDays: scheduleHelper.selectedDaysOfWeek)
+        let arr = Array(schedule)
+        delegate?.didReceiveWeekDays(weekDays: arr.sorted())
         self.dismiss(animated: true)
     }
+    
     // MARK: - Public Methods
+    
     func setDelegate(delegate: ScheduleDelegateProtocol) {
         self.delegate = delegate
     }
     
     func didReceiveWeekDay(weekDay: Int) {
-        scheduleHelper.receiveWeekDay(dayOfWeek: weekDay)
-        
+        if schedule.contains(weekDay) {
+            schedule.remove(weekDay)
+        } else {
+            schedule.insert(weekDay)
+        }
     }
+    
     // MARK: - Private Methods
+    
 }
 
 extension ScheduleViewController: UITableViewDataSource {

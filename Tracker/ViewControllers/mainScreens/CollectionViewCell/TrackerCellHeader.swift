@@ -7,7 +7,9 @@
 import UIKit
 
 final class TrackerCellHeader: UICollectionReusableView {
+    
     // MARK: - Private Properties
+    
     lazy var titleLabel: UILabel = {
         let titleLabel = UILabel()
         titleLabel.font = .systemFont(ofSize: 19, weight: . bold)
@@ -15,7 +17,9 @@ final class TrackerCellHeader: UICollectionReusableView {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         return titleLabel
     }()
+    
     // MARK: - Initializers
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         setUI()
@@ -24,11 +28,15 @@ final class TrackerCellHeader: UICollectionReusableView {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
     // MARK: - Public Methods
+    
     func configureTitle(_ text: String) {
         titleLabel.text = text
     }
+    
     // MARK: - Private Methods
+    
     private func setUI() {
         addSubview(titleLabel)
         NSLayoutConstraint.activate([

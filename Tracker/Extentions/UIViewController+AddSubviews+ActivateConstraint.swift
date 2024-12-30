@@ -25,6 +25,4 @@ extension UIViewController {
     }
 }
 
-extension Calendar {
-    static let gregorian = Calendar(identifier: .gregorian)
-}
+

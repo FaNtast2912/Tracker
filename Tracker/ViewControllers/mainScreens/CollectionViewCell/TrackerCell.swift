@@ -9,8 +9,10 @@ import UIKit
 
 
 final class TrackerCell: UICollectionViewCell {
+    
     // MARK: - Public Properties
-    static let identifier = "ColorCell"
+    
+    static let identifier = "TrackerCell"
     // UI
     lazy var doneButton: UIButton = {
         let button = UIButton(type: .custom)
@@ -22,7 +24,9 @@ final class TrackerCell: UICollectionViewCell {
         button.addTarget(self, action: #selector(doneButtonTapped), for: .touchUpInside)
         return button
     }()
+    
     // MARK: - Private Properties
+    
     // UI
     private weak var delegate: TrackerCellDelegate?
     private lazy var colorView: UIView = {
@@ -124,7 +128,9 @@ final class TrackerCell: UICollectionViewCell {
     private var indexPath: IndexPath?
     private var daysDone: Int? = 7
     private var tracker: Tracker?
+    
     // MARK: - Initializers
+    
     required init?(coder: NSCoder) {
         super.init(coder: coder)
     }
@@ -134,7 +140,9 @@ final class TrackerCell: UICollectionViewCell {
         contentView.layer.cornerRadius = 5
         contentView.layer.masksToBounds = true
     }
+    
     // MARK: - IB Actions
+    
     @objc
     private func doneButtonTapped() {
         guard let id = trackerID else { return }
@@ -145,7 +153,9 @@ final class TrackerCell: UICollectionViewCell {
             delegate?.didReceiveCompleteTrackerId(on: index, for: id)
         }
     }
+    
     // MARK: - Public Methods
+    
     func configureCell(tracker: Tracker, isCompletedToday: Bool, completedDays: Int, indexPath: IndexPath, delegate: TrackerCellDelegate) {
         self.tracker = tracker
         self.indexPath = indexPath
@@ -165,5 +175,6 @@ final class TrackerCell: UICollectionViewCell {
         doneButton.setImage(image, for: .normal)
         
     }
+    
     // MARK: - Private Methods
 }
