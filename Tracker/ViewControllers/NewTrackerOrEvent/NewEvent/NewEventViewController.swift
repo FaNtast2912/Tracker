@@ -192,7 +192,7 @@ final class NewEventViewController: UIViewController, NewCategoryDelegateProtoco
             schedule: eventSchedule,
             isEvent: true
         )
-        trackerStorage.createNewTracker(tracker: tracker)
+        trackerStorage.createNewTracker(tracker: tracker, category: selectedCategory.name)
         delegate?.didReceiveRefreshRequest()
         view?.window?.rootViewController?.dismiss(animated: true)
     }
@@ -242,6 +242,9 @@ extension NewEventViewController: UITextFieldDelegate {
         textField.endEditing(true)
         selectedNewEventTitle = textField.text ?? ""
         if selectedNewEventTitle != "" {
+            canCreate()
+        } else {
+            selectedNewEventTitle = nil
             canCreate()
         }
         if let text = textField.text {

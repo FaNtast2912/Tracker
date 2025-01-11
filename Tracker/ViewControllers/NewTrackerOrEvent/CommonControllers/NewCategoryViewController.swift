@@ -12,14 +12,13 @@ final class NewCategoryViewController: UIViewController {
     
     weak var delegate: NewCategoryDelegateProtocol?
     // MARK: - Private Properties
-    
+    private let trackerService = TrackersService.shared
     // MARK: UI
     
     private lazy var categoriesTable: UITableView = {
         let tableView = UITableView()
         tableView.layer.cornerRadius = 16
         tableView.rowHeight = 75
-        tableView.isScrollEnabled = false
         tableView.showsVerticalScrollIndicator = false
         tableView.backgroundColor = .ypBackground
         tableView.delegate = self
@@ -71,7 +70,7 @@ final class NewCategoryViewController: UIViewController {
             categoryTableIsEmptyLabel.heightAnchor.constraint(equalToConstant: 60)
         ]
     }
-    private var trackersStubImageConstraint: [NSLayoutConstraint] {
+    private var categoriesStubImageConstraint: [NSLayoutConstraint] {
         [
             newCategoryStubImage.widthAnchor.constraint(equalToConstant: 80),
             newCategoryStubImage.heightAnchor.constraint(equalToConstant: 80),
@@ -81,10 +80,11 @@ final class NewCategoryViewController: UIViewController {
     }
     private var categoriesTableConstraint: [NSLayoutConstraint] {
         [
-            categoriesTable.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -599),
+            categoriesTable.bottomAnchor.constraint(equalTo: addNewCategoryButton.topAnchor, constant: -47),
             categoriesTable.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             categoriesTable.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            categoriesTable.heightAnchor.constraint(equalToConstant: 75)
+            categoriesTable.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24)
+            //            categoriesTable.heightAnchor.constraint(equalToConstant: 75)
         ]
     }
     private var allUiElementsArray: [UIView] {
@@ -96,34 +96,79 @@ final class NewCategoryViewController: UIViewController {
         ]
     }
     private var allConstraintsArray: [NSLayoutConstraint] {
-        addNewCategoryButtonConstraint + categoryTableEmptyLabelConstraint + trackersStubImageConstraint + categoriesTableConstraint
+        addNewCategoryButtonConstraint + categoryTableEmptyLabelConstraint + categoriesStubImageConstraint + categoriesTableConstraint
     }
     private var categories: [TrackerCategory] = []
     private var selectedCategories: TrackerCategory?
     
     // MARK: - Overrides Methods
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        let mockCategory = TrackerCategory(name: "Важное", trackers: [])
-        selectedCategories = mockCategory
-        categories.append(mockCategory)
-        view.backgroundColor = .ypWhite
-        self.setUI(to: allUiElementsArray, set: allConstraintsArray)
-        if !categories.isEmpty {
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        categories = trackerService.categories
+        categoriesTable.reloadData()
+        updateEmptyState()
+    }
+    
+    private func updateEmptyState() {
+        if categories.isEmpty {
+            newCategoryStubImage.isHidden = false
+            categoryTableIsEmptyLabel.isHidden = false
+        } else {
             newCategoryStubImage.isHidden = true
             categoryTableIsEmptyLabel.isHidden = true
         }
-        
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .ypWhite
+        self.setUI(to: allUiElementsArray, set: allConstraintsArray)
+        updateEmptyState()
     }
     
     // MARK: - IB Actions
     
     @objc
     func addNewCategoryButtonTapped() {
-        // TO DO add new category
+        let viewControllerToPresent = CreateCategoryViewController()
+        viewControllerToPresent.title = "Новая категория"
+        let newTrackerViewControllerNavigationController = UINavigationController(rootViewController: viewControllerToPresent)
+        self.present(newTrackerViewControllerNavigationController, animated: true)
     }
     
+    private func deleteCategory(at indexPath: IndexPath) {
+        let categoryToDelete = categories[indexPath.row]
+        
+        // Показываем подтверждение удаления
+        let alert = UIAlertController(
+            title: "Удалить категорию",
+            message: "Вы уверены, что хотите удалить категорию «\(categoryToDelete.name)»?",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "Отменить", style: .cancel))
+        
+        alert.addAction(UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
+            guard let self = self else { return }
+            do {
+                try self.trackerService.deleteCategory(categoryToDelete)
+                self.categories = self.trackerService.categories
+                self.categoriesTable.reloadData()
+                self.updateEmptyState()
+            } catch {
+                let errorAlert = UIAlertController(
+                    title: "Ошибка",
+                    message: "Не удалось удалить категорию",
+                    preferredStyle: .alert
+                )
+                errorAlert.addAction(UIAlertAction(title: "OK", style: .default))
+                self.present(errorAlert, animated: true)
+            }
+        })
+        
+        present(alert, animated: true)
+    }
     // MARK: - Public Methods
     
     // MARK: - Private Methods
@@ -132,16 +177,18 @@ final class NewCategoryViewController: UIViewController {
 
 extension NewCategoryViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 1
+        return categories.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "cell")
+        let category = categories[indexPath.row]
         cell.accessoryType = .disclosureIndicator
         cell.selectionStyle = .default
-        cell.textLabel?.text = "Важное"
+        cell.textLabel?.text = category.name
         cell.backgroundColor = .ypBackground
         cell.selectionStyle = .none
+        cell.accessoryType = .none
         cell.detailTextLabel?.textColor = .ypGray
         cell.detailTextLabel?.font = UIFont.systemFont(ofSize: 17, weight: .regular)
         cell.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
@@ -150,9 +197,28 @@ extension NewCategoryViewController: UITableViewDataSource {
 }
 
 extension NewCategoryViewController: UITableViewDelegate {
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let selectedCategories else { return }
-        delegate?.categoryDidSelect(category: selectedCategories)
+        let selectedCategory = categories[indexPath.row]
+        tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
+        tableView.cellForRow(at: indexPath)?.accessoryView?.tintColor = .ypBlue
+        delegate?.categoryDidSelect(category: selectedCategory)
         self.dismiss(animated: true)
+    }
+    
+    func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
+            let editAction = UIAction(title: "Редактировать") { _ in
+                // TO DO редактирование категории
+            }
+            
+            let deleteAction = UIAction(
+                title: "Удалить",
+                attributes: .destructive
+            ) { [weak self] _ in
+                self?.deleteCategory(at: indexPath)
+            }
+            return UIMenu(children: [editAction, deleteAction])
+        }
     }
 }

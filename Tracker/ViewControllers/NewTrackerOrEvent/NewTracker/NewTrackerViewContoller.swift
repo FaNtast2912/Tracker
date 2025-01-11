@@ -186,7 +186,7 @@ final class NewTrackerViewContoller: UIViewController, NewCategoryDelegateProtoc
             schedule: selectedWeekDays,
             isEvent: false
         )
-        trackerStorage.createNewTracker(tracker: tracker)
+        trackerStorage.createNewTracker(tracker: tracker, category: selectedCategory.name)
         delegate?.didReceiveRefreshRequest()
         view?.window?.rootViewController?.dismiss(animated: true)
     }
