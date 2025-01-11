@@ -13,10 +13,24 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+        setupWindow(scene)
+    }
+    
+    func setupWindow(_ scene: UIScene) {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         window = UIWindow(windowScene: windowScene)
-        window?.rootViewController = TabBarController()
+        window?.rootViewController = determineInitialViewController()
         window?.makeKeyAndVisible()
+    }
+    
+    func determineInitialViewController() -> UIViewController {
+        let isFirstLaunch = !UserDefaults.standard.bool(forKey: "hasLaunchedBefore")
+        if isFirstLaunch {
+            UserDefaults.standard.set(true, forKey: "hasLaunchedBefore")
+            return OnboardingPageViewController()
+        } else {
+            return TabBarController()
+        }
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {
