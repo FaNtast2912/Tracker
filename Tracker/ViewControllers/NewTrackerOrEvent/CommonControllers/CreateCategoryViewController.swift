@@ -22,10 +22,10 @@ final class CreateCategoryViewController: UIViewController {
     private lazy var textField: UITextField = {
         let textField = UITextField()
         textField.clearButtonMode = .whileEditing
-        textField.placeholder = "Введите название трекера"
+        textField.placeholder = "Введите название категории"
         textField.font = UIFont(name: "SF Pro", size: 17)
         textField.tintColor = .ypGray
-        textField.backgroundColor = .ypWhite
+        textField.backgroundColor = .ypBackground
         textField.layer.cornerRadius = 16
         textField.delegate = self
         textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 0))
@@ -50,6 +50,7 @@ final class CreateCategoryViewController: UIViewController {
         button.backgroundColor = .ypGray
         button.layer.cornerRadius = 16
         button.layer.masksToBounds = true
+        button.isEnabled = false
         return button
     }()
     private var makeTrackerButtonConstraint: [NSLayoutConstraint] {
@@ -76,9 +77,17 @@ final class CreateCategoryViewController: UIViewController {
         makeTrackerButtonConstraint + textFieldVStackConstraint
     }
     private var selectedNewCategoryTitle: String?
-    private let trackerService = TrackersService.shared
-    // MARK: - Initializers
+    private let viewModel: CategoryViewModel
     
+    // MARK: - Initializers
+    init(viewModel: CategoryViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     // MARK: - Overrides Methods
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -86,34 +95,27 @@ final class CreateCategoryViewController: UIViewController {
         setUI(to: allUiElementsArray, set: allConstraintsArray)
     }
     // MARK: - IB Actions
-    @objc
-    private func makeCategoryButtonTapped() {
+    @objc private func makeCategoryButtonTapped() {
         guard let categoryName = selectedNewCategoryTitle else { return }
         
-        if trackerService.isCategoryExist(categoryName) {
+        if viewModel.isCategoryExists(categoryName) {
             errorLabel.text = "Категория уже существует!"
             errorLabel.isHidden = false
             return
-        } else {
-            errorLabel.isHidden = true
         }
         
         let newCategory = TrackerCategory(name: categoryName, trackers: [])
-        trackerService.createNewCategory(newCategory: newCategory)
-        self.dismiss(animated: true)
+        viewModel.addCategory(newCategory)
+        dismiss(animated: true)
     }
     
     // MARK: - Public Methods
     
     // MARK: - Private Methods
-    private func canCreate() {
-        if selectedNewCategoryTitle != nil {
-            makeCategoryButton.isEnabled = true
-            makeCategoryButton.backgroundColor = .ypBlack
-        } else {
-            makeCategoryButton.isEnabled = false
-            makeCategoryButton.backgroundColor = .ypGray
-        }
+    private func updateCreateButtonState() {
+        let isEnabled = selectedNewCategoryTitle != nil
+        makeCategoryButton.isEnabled = isEnabled
+        makeCategoryButton.backgroundColor = isEnabled ? .ypBlack : .ypGray
     }
 }
 
@@ -132,26 +134,18 @@ extension CreateCategoryViewController: UITextFieldDelegate {
         return true
     }
     
-    
+    func textFieldDidChangeSelection(_ textField: UITextField) {
+        selectedNewCategoryTitle = textField.text?.isEmpty == false ? textField.text : nil
+        updateCreateButtonState()
+    }
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.endEditing(true)
-        selectedNewCategoryTitle = textField.text ?? ""
-        if selectedNewCategoryTitle != "" {
-            canCreate()
-        } else {
-            selectedNewCategoryTitle = nil
-            canCreate()
-        }
-        if let text = textField.text {
-            if text.count > 38 {
-                return false
-            }
-            selectedNewCategoryTitle = text
-            textField.resignFirstResponder()
-            return true
-        }
-        return false
+        return true
     }
     
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        selectedNewCategoryTitle = textField.text?.isEmpty == false ? textField.text : nil
+        updateCreateButtonState()
+    }
 }

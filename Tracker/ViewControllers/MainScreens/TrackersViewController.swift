@@ -343,6 +343,7 @@ extension TrackersViewController: UICollectionViewDelegate {
             let editAction = UIAction(
                 title: "Редактировать"
             ) { [weak self] _ in
+                // TO DO Редактирование
                 print("Редактировать")
             }
             
@@ -350,12 +351,14 @@ extension TrackersViewController: UICollectionViewDelegate {
                 title: "Удалить",
                 attributes: .destructive
             ) { [weak self] _ in
+                // TO DO Удаление
                 print("Удалить")
             }
             
             let pinAction = UIAction(
                 title: "Закрепить"
             ) { [weak self] _ in
+                // TO DO Закрепить
                 print("Закрепить")
             }
             

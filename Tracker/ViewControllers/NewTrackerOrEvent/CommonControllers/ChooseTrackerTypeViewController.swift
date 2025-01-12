@@ -83,6 +83,7 @@ final class ChooseTrackerTypeViewController: UIViewController {
         let newTrackerViewControllerNavigationController = UINavigationController(rootViewController: viewControllerToPresent)
         self.present(newTrackerViewControllerNavigationController, animated: true)
     }
+    
     @objc
     private func eventButtonTapped() {
         let viewControllerToPresent = NewEventViewController()
