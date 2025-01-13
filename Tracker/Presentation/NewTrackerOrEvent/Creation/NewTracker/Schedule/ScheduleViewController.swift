@@ -75,7 +75,7 @@ final class ScheduleViewController:  UIViewController, WeekDayCellDelegateProtoc
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .ypWhite
-        self.setUI(to: allUiElementsArray, set: allConstraintsArray)
+        setUI(to: allUiElementsArray, set: allConstraintsArray)
     }
     
     // MARK: - IB Actions

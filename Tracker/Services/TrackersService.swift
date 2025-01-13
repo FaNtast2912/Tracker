@@ -53,40 +53,45 @@ final class TrackersService {
         var trackers = [Tracker]()
         
         let records = trackerRecordStore.getRecords()
-        guard let firstCategory = categories.first else { return }
         
-        for tracker in firstCategory.trackers {
-            if tracker.isEvent {
-                let trackerRecords = records.filter { $0.id == tracker.id }
-                if trackerRecords.isEmpty {
-                    trackers.append(tracker)
+        for category in categories {
+            for tracker in category.trackers {
+                if tracker.isEvent {
+                    let trackerRecords = records.filter { $0.id == tracker.id }
+                    if trackerRecords.isEmpty {
+                        trackers.append(tracker)
+                    } else {
+                        let hasRecordOnSelectedDate = trackerRecords.contains { record in
+                            Calendar.current.isDate(record.date, inSameDayAs: selectedDate)
+                        }
+                        if hasRecordOnSelectedDate {
+                            trackers.append(tracker)
+                        }
+                    }
                 } else {
-                    let hasRecordOnSelectedDate = trackerRecords.contains { record in
-                        Calendar.current.isDate(record.date, inSameDayAs: selectedDate)
-                    }
-                    if hasRecordOnSelectedDate {
-                        trackers.append(tracker)
-                    }
-                }
-            } else {
-                for day in tracker.schedule {
-                    if day == weekday {
-                        trackers.append(tracker)
+                    for day in tracker.schedule {
+                        if day == weekday {
+                            trackers.append(tracker)
+                        }
                     }
                 }
             }
+            if !trackers.isEmpty {
+                let categoryWithVisibleTrackers = TrackerCategory(name: category.name, trackers: trackers)
+                visibleCategory.append(categoryWithVisibleTrackers)
+            }
+            trackers = []
         }
-        let categoryWithVisibleTrackers = TrackerCategory(name: firstCategory.name, trackers: trackers)
-        visibleCategory.append(categoryWithVisibleTrackers)
     }
+    
     func clearVisibleTrackers() {
         visibleCategory.removeAll()
     }
-    func createNewTracker(tracker: Tracker) {
-        trackerCategoryStore.addTrackerToCategory(tracker, category: "Важное")
+    func createNewTracker(tracker: Tracker, category: String) {
+        trackerCategoryStore.addTrackerToCategory(tracker, category: category)
     }
-    func createNewCategory(newCategoty: TrackerCategory) {
-        // TO DO
+    func createNewCategory(newCategory: TrackerCategory) {
+        try? trackerCategoryStore.addNewTrackerCategory(newCategory)
     }
     func checkIsCategoryEmpty() -> Bool {
         categories.isEmpty
@@ -117,6 +122,14 @@ final class TrackersService {
     
     func getRecords() -> [TrackerRecord] {
         return trackerRecordStore.getRecords()
+    }
+    
+    func isCategoryExist(_ name: String) -> Bool {
+        trackerCategoryStore.isCategoryExists(name)
+    }
+    
+    func deleteCategory(_ category: TrackerCategory) throws {
+       try? trackerCategoryStore.deleteCategory(category)
     }
     
     // MARK: - Private Methods

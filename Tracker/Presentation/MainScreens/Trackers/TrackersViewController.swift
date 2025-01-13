@@ -46,17 +46,19 @@ final class TrackersViewController: UIViewController, UISearchResultsUpdating, U
         return datePicker
     }()
     private var trackersStubImageConstraint: [NSLayoutConstraint] {
-        [trackersStubImage.widthAnchor.constraint(equalToConstant: 80),
-         trackersStubImage.heightAnchor.constraint(equalToConstant: 80),
-         trackersStubImage.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-         trackersStubImage.topAnchor.constraint(equalTo: view.topAnchor, constant: 402)
+        [
+            trackersStubImage.widthAnchor.constraint(equalToConstant: 80),
+            trackersStubImage.heightAnchor.constraint(equalToConstant: 80),
+            trackersStubImage.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            trackersStubImage.topAnchor.constraint(equalTo: view.topAnchor, constant: 402)
         ]
     }
     private var trackersStubLabelConstraint: [NSLayoutConstraint] {
-        [trackersStubLabel.widthAnchor.constraint(equalToConstant: 343),
-         trackersStubLabel.heightAnchor.constraint(equalToConstant: 18),
-         trackersStubLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-         trackersStubLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 490)
+        [
+            trackersStubLabel.widthAnchor.constraint(equalToConstant: 343),
+            trackersStubLabel.heightAnchor.constraint(equalToConstant: 18),
+            trackersStubLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            trackersStubLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 490)
         ]
     }
     private var trackerCollectionConstraint: [NSLayoutConstraint] {
@@ -331,6 +333,36 @@ extension TrackersViewController: TrackerCategoryStoreDelegate {
                     to: IndexPath(item: move.newIndex, section: 0)
                 )
             }
+        }
+    }
+}
+
+extension TrackersViewController: UICollectionViewDelegate {
+    func collectionView(_ collectionView: UICollectionView, contextMenuConfigurationForItemAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
+            let editAction = UIAction(
+                title: "Редактировать"
+            ) { [weak self] _ in
+                // TO DO Редактирование
+                print("Редактировать")
+            }
+            
+            let deleteAction = UIAction(
+                title: "Удалить",
+                attributes: .destructive
+            ) { [weak self] _ in
+                // TO DO Удаление
+                print("Удалить")
+            }
+            
+            let pinAction = UIAction(
+                title: "Закрепить"
+            ) { [weak self] _ in
+                // TO DO Закрепить
+                print("Закрепить")
+            }
+            
+            return UIMenu(children: [pinAction, editAction, deleteAction])
         }
     }
 }

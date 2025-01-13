@@ -12,18 +12,18 @@ final class NewCategoryViewController: UIViewController {
     
     weak var delegate: NewCategoryDelegateProtocol?
     // MARK: - Private Properties
-    
+    private let trackerService = TrackersService.shared
     // MARK: UI
     
     private lazy var categoriesTable: UITableView = {
         let tableView = UITableView()
         tableView.layer.cornerRadius = 16
         tableView.rowHeight = 75
-        tableView.isScrollEnabled = false
         tableView.showsVerticalScrollIndicator = false
-        tableView.backgroundColor = .ypBackground
+        tableView.backgroundColor = .ypWhite
         tableView.delegate = self
         tableView.dataSource = self
+        tableView.register(CategoryCell.self, forCellReuseIdentifier: CategoryCell.reuseIdentifier)
         return tableView
     }()
     private lazy var newCategoryStubImage: UIImageView = {
@@ -55,6 +55,7 @@ final class NewCategoryViewController: UIViewController {
         button.layer.masksToBounds = true
         return button
     }()
+    
     private var addNewCategoryButtonConstraint: [NSLayoutConstraint] {
         [
             addNewCategoryButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -50),
@@ -71,7 +72,7 @@ final class NewCategoryViewController: UIViewController {
             categoryTableIsEmptyLabel.heightAnchor.constraint(equalToConstant: 60)
         ]
     }
-    private var trackersStubImageConstraint: [NSLayoutConstraint] {
+    private var categoriesStubImageConstraint: [NSLayoutConstraint] {
         [
             newCategoryStubImage.widthAnchor.constraint(equalToConstant: 80),
             newCategoryStubImage.heightAnchor.constraint(equalToConstant: 80),
@@ -81,10 +82,11 @@ final class NewCategoryViewController: UIViewController {
     }
     private var categoriesTableConstraint: [NSLayoutConstraint] {
         [
-            categoriesTable.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -599),
+            categoriesTable.bottomAnchor.constraint(equalTo: addNewCategoryButton.topAnchor, constant: -47),
             categoriesTable.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             categoriesTable.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            categoriesTable.heightAnchor.constraint(equalToConstant: 75)
+            categoriesTable.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24)
+            //            categoriesTable.heightAnchor.constraint(equalToConstant: 75)
         ]
     }
     private var allUiElementsArray: [UIView] {
@@ -96,63 +98,117 @@ final class NewCategoryViewController: UIViewController {
         ]
     }
     private var allConstraintsArray: [NSLayoutConstraint] {
-        addNewCategoryButtonConstraint + categoryTableEmptyLabelConstraint + trackersStubImageConstraint + categoriesTableConstraint
+        addNewCategoryButtonConstraint + categoryTableEmptyLabelConstraint + categoriesStubImageConstraint + categoriesTableConstraint
     }
     private var categories: [TrackerCategory] = []
     private var selectedCategories: TrackerCategory?
+    private let viewModel: CategoryViewModel
+    
+    // MARK: - Initialization
+    
+    init(viewModel: CategoryViewModel = CategoryViewModel()) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     
     // MARK: - Overrides Methods
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        viewModel.loadCategories()
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        let mockCategory = TrackerCategory(name: "Важное", trackers: [])
-        selectedCategories = mockCategory
-        categories.append(mockCategory)
         view.backgroundColor = .ypWhite
         self.setUI(to: allUiElementsArray, set: allConstraintsArray)
-        if !categories.isEmpty {
-            newCategoryStubImage.isHidden = true
-            categoryTableIsEmptyLabel.isHidden = true
-        }
-        
+        setupBindings()
     }
     
     // MARK: - IB Actions
     
-    @objc
-    func addNewCategoryButtonTapped() {
-        // TO DO add new category
-    }
-    
+    @objc private func addNewCategoryButtonTapped() {
+         let createCategoryVC = CreateCategoryViewController(viewModel: viewModel)
+         createCategoryVC.title = "Новая категория"
+         let navigationController = UINavigationController(rootViewController: createCategoryVC)
+         present(navigationController, animated: true)
+     }
     // MARK: - Public Methods
     
     // MARK: - Private Methods
+
+    private func deleteCategory(at indexPath: IndexPath) {
+        let alert = UIAlertController(
+            title: "Удалить категорию",
+            message: "Вы уверены, что хотите удалить категорию «\(viewModel.category(at: indexPath).name)»?",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "Отменить", style: .cancel))
+        
+        alert.addAction(UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
+            self?.viewModel.deleteCategory(at: indexPath)
+        })
+        
+        present(alert, animated: true)
+    }
+    
+    private func setupBindings() {
+        viewModel.categoriesBinding = { [weak self] _ in
+            self?.categoriesTable.reloadData()
+        }
+        
+        viewModel.isEmptyBinding = { [weak self] isEmpty in
+            self?.newCategoryStubImage.isHidden = !isEmpty
+            self?.categoryTableIsEmptyLabel.isHidden = !isEmpty
+        }
+    }
     
 }
 
 extension NewCategoryViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 1
+        return viewModel.numberOfRows()
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "cell")
-        cell.accessoryType = .disclosureIndicator
-        cell.selectionStyle = .default
-        cell.textLabel?.text = "Важное"
-        cell.backgroundColor = .ypBackground
-        cell.selectionStyle = .none
-        cell.detailTextLabel?.textColor = .ypGray
-        cell.detailTextLabel?.font = UIFont.systemFont(ofSize: 17, weight: .regular)
-        cell.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: CategoryCell.reuseIdentifier, for: indexPath) as? CategoryCell else {
+            return UITableViewCell()
+        }
+        
+        let category = viewModel.category(at: indexPath)
+        cell.configure(with: category)
         return cell
     }
 }
 
 extension NewCategoryViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let selectedCategories else { return }
-        delegate?.categoryDidSelect(category: selectedCategories)
-        self.dismiss(animated: true)
+        let selectedCategory = viewModel.category(at: indexPath)
+        tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
+        delegate?.categoryDidSelect(category: selectedCategory)
+        dismiss(animated: true)
+    }
+    
+    func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
+            let editAction = UIAction(title: "Редактировать") { _ in
+                // TO DO: Implement edit functionality
+            }
+            
+            let deleteAction = UIAction(
+                title: "Удалить",
+                attributes: .destructive
+            ) { [weak self] _ in
+                self?.deleteCategory(at: indexPath)
+            }
+            
+            return UIMenu(children: [editAction, deleteAction])
+        }
     }
 }
