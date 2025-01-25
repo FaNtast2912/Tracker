@@ -11,6 +11,16 @@ final class TrackersViewController: UIViewController, UISearchResultsUpdating, U
     // MARK: - Private Properties
     
     // MARK: UI
+    private lazy var filterButton: UIButton = {
+        let button = UIButton(type: .system)
+        let title = NSLocalizedString("filterButtonTitle", comment: "title for filter button")
+        button.titleLabel?.font = .systemFont(ofSize: 17, weight: .medium)
+        button.setTitle(title, for: .normal)
+        button.layer.cornerRadius = 16
+        button.tintColor = .ypWhite
+        button.backgroundColor = .ypBlue
+        return button
+    }()
     private lazy var trackersCollectionView: UICollectionView = {
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
         collectionView.backgroundColor = .ypWhite
@@ -45,6 +55,14 @@ final class TrackersViewController: UIViewController, UISearchResultsUpdating, U
         datePicker.addTarget(self, action: #selector(changeDate(_:)) , for: .valueChanged)
         return datePicker
     }()
+    private var filterButtonConstraint: [NSLayoutConstraint] {
+        [
+            filterButton.widthAnchor.constraint(equalToConstant: 114),
+            filterButton.heightAnchor.constraint(equalToConstant: 50),
+            filterButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 131),
+            filterButton.bottomAnchor.constraint(equalTo: view.layoutMarginsGuide.bottomAnchor, constant: -16)
+        ]
+    }
     private var trackersStubImageConstraint: [NSLayoutConstraint] {
         [
             trackersStubImage.widthAnchor.constraint(equalToConstant: 80),
@@ -85,11 +103,12 @@ final class TrackersViewController: UIViewController, UISearchResultsUpdating, U
     private var allUiElementsArray: [UIView] {
         [trackersStubImage,
          trackersStubLabel,
-         trackersCollectionView
+         trackersCollectionView,
+         filterButton
         ]
     }
     private var allConstraintsArray: [NSLayoutConstraint] {
-        trackersStubImageConstraint + trackersStubLabelConstraint + trackerCollectionConstraint
+        trackersStubImageConstraint + trackersStubLabelConstraint + trackerCollectionConstraint + filterButtonConstraint
     }
     // MARK: setup Tracker, category
     private let trackersService = TrackersService.shared
