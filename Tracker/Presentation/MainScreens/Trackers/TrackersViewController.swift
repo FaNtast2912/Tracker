@@ -322,7 +322,13 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-        return UIEdgeInsets(top: 10, left: 16, bottom: 10, right: 16)
+        let lastSection = trackersService.visibleCount - 1
+        switch section {
+        case lastSection:
+            return UIEdgeInsets(top: 10, left: 16, bottom: 80, right: 16)
+        default:
+            return UIEdgeInsets(top: 10, left: 16, bottom: 10, right: 16)
+        }
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
