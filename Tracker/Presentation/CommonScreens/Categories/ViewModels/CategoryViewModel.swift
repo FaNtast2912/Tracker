@@ -49,6 +49,12 @@ final class CategoryViewModel {
         loadCategories()
     }
     
+    func deleteCategory(name title: String) {
+        guard let category = categories.first(where: { $0.name == title }) else { return }
+        try? categoryStore.deleteCategory(category)
+        loadCategories()
+    }
+    
     func isCategoryExists(_ name: String) -> Bool {
         return categoryStore.isCategoryExists(name)
     }

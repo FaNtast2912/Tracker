@@ -197,8 +197,14 @@ extension NewCategoryViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
-            let editAction = UIAction(title: "Редактировать") { _ in
-                // TO DO: Implement edit functionality
+            guard let self else { return nil }
+            let selectedCategory = viewModel.category(at: indexPath)
+            let editAction = UIAction(title: "Редактировать") { [weak self] _ in
+                guard let self else { return }
+                let editCategoryVC = EditCategoryViewController(viewModel: viewModel, selectedCategory: selectedCategory.name)
+                editCategoryVC.title = "Редактирование категории"
+                let navigationController = UINavigationController(rootViewController: editCategoryVC)
+                present(navigationController, animated: true)
             }
             
             let deleteAction = UIAction(
