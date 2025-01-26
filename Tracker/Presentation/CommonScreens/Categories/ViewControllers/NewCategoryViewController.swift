@@ -144,9 +144,8 @@ final class NewCategoryViewController: UIViewController {
 
     private func deleteCategory(at indexPath: IndexPath) {
         let alert = UIAlertController(
-            title: "Удалить категорию",
-            message: "Вы уверены, что хотите удалить категорию «\(viewModel.category(at: indexPath).name)»?",
-            preferredStyle: .alert
+            title: nil, message: "Эта категория точно не нужна?",
+            preferredStyle: .actionSheet
         )
         
         alert.addAction(UIAlertAction(title: "Отменить", style: .cancel))
