@@ -49,55 +49,6 @@ final class TrackersService {
     // MARK: - IB Actions
     
     // MARK: - Public Methods
-//    func appendTrackerInVisibleTrackers(weekday: Int, from recordTrackers: [TrackerRecord], selectedDate: Date) {
-//        clearVisibleTrackers() // Очистка перед новым формированием
-//        
-//        // Сначала добавляем закрепленные трекеры как отдельную категорию
-//        let pinnedTrackers = categories.first(where: { $0.name == "Закрепленные" })?.trackers ?? []
-//        if !pinnedTrackers.isEmpty {
-//            visibleCategory.append(TrackerCategory(name: "Закрепленные", trackers: pinnedTrackers))
-//        }
-//        
-//        let records = trackerRecordStore.getRecords()
-//        
-//        for category in categories {
-//            // Пропускаем категорию "Закрепленные"
-//            guard category.name != "Закрепленные" else { continue }
-//            
-//            var categoryTrackers: [Tracker] = []
-//            
-//            for tracker in category.trackers {
-//                // Пропускаем уже добавленные закрепленные трекеры
-//                guard !tracker.isPinned else { continue }
-//                
-//                // Логика фильтрации по дате и расписанию (прежняя)
-//                if tracker.isEvent {
-//                    let trackerRecords = records.filter { $0.id == tracker.id }
-//                    if trackerRecords.isEmpty {
-//                        categoryTrackers.append(tracker)
-//                    } else {
-//                        let hasRecordOnSelectedDate = trackerRecords.contains { record in
-//                            Calendar.current.isDate(record.date, inSameDayAs: selectedDate)
-//                        }
-//                        if hasRecordOnSelectedDate {
-//                            categoryTrackers.append(tracker)
-//                        }
-//                    }
-//                } else {
-//                    for day in tracker.schedule {
-//                        if day == weekday {
-//                            categoryTrackers.append(tracker)
-//                            break
-//                        }
-//                    }
-//                }
-//            }
-//            
-//            if !categoryTrackers.isEmpty {
-//                visibleCategory.append(TrackerCategory(name: category.name, trackers: categoryTrackers))
-//            }
-//        }
-//    }
     func appendTrackerInVisibleTrackers(weekday: Int, from recordTrackers: [TrackerRecord], selectedDate: Date) {
         var trackers = [Tracker]()
         
