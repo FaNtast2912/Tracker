@@ -29,6 +29,7 @@ final class NewTrackerOrEventCell: UICollectionViewCell {
         label.backgroundColor = .ypWhite
         label.layer.cornerRadius = 8
         label.font = .systemFont(ofSize: 32)
+        label.textAlignment = .center  
         label.layer.masksToBounds = true
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -70,6 +71,21 @@ final class NewTrackerOrEventCell: UICollectionViewCell {
     }
     
     // MARK: - IB Actions
+    
+    // MARK: - Override methods
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        emojiLabel.text = nil
+        emojiLabel.backgroundColor = .ypWhite
+
+        colorView.backgroundColor = nil
+        colorCellBackground = nil
+        
+        backgroundColor = .clear
+        layer.borderWidth = 0
+        layer.cornerRadius = 8
+    }
     
     // MARK: - Public Methods
     

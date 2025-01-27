@@ -91,6 +91,7 @@ final class TrackerStore: NSObject {
         trackerCoreData.isEvent = tracker.isEvent
         trackerCoreData.name = tracker.name
         trackerCoreData.schedule = tracker.schedule as NSArray?
+        trackerCoreData.isPinned = tracker.isPinned
         save()
     }
     
@@ -102,6 +103,7 @@ final class TrackerStore: NSObject {
         trackerCoreData.isEvent = tracker.isEvent
         trackerCoreData.name = tracker.name
         trackerCoreData.schedule = tracker.schedule as NSArray?
+        trackerCoreData.isPinned = tracker.isPinned
         return trackerCoreData
     }
     
@@ -124,13 +126,15 @@ final class TrackerStore: NSObject {
         let isEvent = trackerCoreData.isEvent
         let color = uiColorMarshalling.color(from: colorRaw)
         let schedule = scheduleRaw as? [Int] ?? []
+        let isPinned = trackerCoreData.isPinned
         return Tracker(
             name: name,
             id: id,
             color: color,
             emoji: emoji,
             schedule: schedule,
-            isEvent: isEvent
+            isEvent: isEvent,
+            isPinned: isPinned
         )
     }
     

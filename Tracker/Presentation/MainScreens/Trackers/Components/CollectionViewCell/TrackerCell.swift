@@ -65,6 +65,13 @@ final class TrackerCell: UICollectionViewCell {
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
+    private lazy var pinImageView: UIImageView = {
+        let image = UIImage(named: "componentPinIcon")
+        let imageView = UIImageView(image: image)
+        imageView.tintColor = .white
+        imageView.contentMode = .scaleAspectFit
+        return imageView
+    }()
     private var colorViewConstraint: [NSLayoutConstraint] {
         [
             colorView.heightAnchor.constraint(equalToConstant: 90),
@@ -109,6 +116,14 @@ final class TrackerCell: UICollectionViewCell {
             doneButton.topAnchor.constraint(equalTo: colorView.bottomAnchor, constant: 8)
         ]
     }
+    private var pinImageViewConstraint: [NSLayoutConstraint] {
+        [
+            pinImageView.centerYAnchor.constraint(equalTo: emojiView.centerYAnchor),
+            pinImageView.trailingAnchor.constraint(equalTo: colorView.trailingAnchor, constant: -4),
+            pinImageView.widthAnchor.constraint(equalToConstant: 24),
+            pinImageView.heightAnchor.constraint(equalToConstant: 24)
+        ]
+    }
     private var allUiElementsArray: [UIView] {
         [
             colorView,
@@ -116,11 +131,12 @@ final class TrackerCell: UICollectionViewCell {
             emojiLabel,
             titleLabel,
             counterLabel,
-            doneButton
+            doneButton,
+            pinImageView
         ]
     }
     private var allConstraintsArray: [NSLayoutConstraint] {
-        colorViewConstraint + emojiViewConstraint + emojiLabelConstraint + titleLabelConstraint + counterLabelConstraint + doneButtonConstraint
+        colorViewConstraint + emojiViewConstraint + emojiLabelConstraint + titleLabelConstraint + counterLabelConstraint + doneButtonConstraint + pinImageViewConstraint
     }
     
     private var isCompletedToday: Bool  = false
@@ -174,7 +190,7 @@ final class TrackerCell: UICollectionViewCell {
         let image = !isCompletedToday ? plusImage : doneImage
         doneButton.alpha = isCompletedToday ?  0.3 : 1
         doneButton.setImage(image, for: .normal)
-        
+        pinImageView.isHidden = tracker.isPinned ? false : true
     }
     
     // MARK: - Private Methods

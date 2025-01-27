@@ -184,7 +184,8 @@ final class NewTrackerViewContoller: UIViewController, NewCategoryDelegateProtoc
             color: colorArr[selectedColorIndex],
             emoji: emojiArr[selectedEmojiIndex],
             schedule: selectedWeekDays,
-            isEvent: false
+            isEvent: false,
+            isPinned: false
         )
         trackerStorage.createNewTracker(tracker: tracker, category: selectedCategory.name)
         delegate?.didReceiveRefreshRequest()

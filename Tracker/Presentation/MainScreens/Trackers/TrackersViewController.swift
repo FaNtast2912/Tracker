@@ -137,6 +137,7 @@ final class TrackersViewController: UIViewController, UISearchResultsUpdating, U
         showTrackersInDate(date)
         refreshCollection()
         trackersService.trackerCategoryStore.delegate = self
+        trackersCollectionView.reloadData()
     }
     
     // MARK: - IB Actions
@@ -221,7 +222,7 @@ final class TrackersViewController: UIViewController, UISearchResultsUpdating, U
     }
     
     private func refreshCollection() {
-        let isStorageEmpty = trackersService.isStorageEmpty
+        let isStorageEmpty = false
         let isVisibleTrackersEmpty = trackersService.isVisibleTrackersEmpty
         
         if isStorageEmpty {
@@ -364,27 +365,50 @@ extension TrackersViewController: TrackerCategoryStoreDelegate {
 
 extension TrackersViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, contextMenuConfigurationForItemAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
-        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
+            guard let self else { return nil }
+            let selectedTracker = trackersService.getTrackerDetails(section: indexPath.section, item: indexPath.item)
+            let selectedCategory = trackersService.trackerCategoryStore.trackersCategories.first { category in
+                category.trackers.contains { $0.id == selectedTracker.id }
+            }
             let editAction = UIAction(
                 title: "Редактировать"
             ) { [weak self] _ in
-                // TO DO Редактирование
-                print("Редактировать")
+                guard let self else { return }
+                let completedTrackers = trackersService.getRecords()
+                let completedDays = completedTrackers.filter { $0.id == selectedTracker.id }.count
+                let localizedString = String.localizedStringWithFormat(NSLocalizedString("numberOfDay", comment: "number of day"), completedDays)
+                let viewControllerToPresent = EditTrackerViewContoller(selected: selectedTracker, selectedCategory: selectedCategory, completedDays: localizedString)
+                viewControllerToPresent.title = !selectedTracker.isEvent ? "Редактирование привычки" : "Редактирование нерегулярного события"
+                viewControllerToPresent.setDelegate(delegate: self)
+                let newTrackerViewControllerNavigationController = UINavigationController(rootViewController: viewControllerToPresent)
+                self.present(newTrackerViewControllerNavigationController, animated: true)
             }
             
             let deleteAction = UIAction(
                 title: "Удалить",
                 attributes: .destructive
             ) { [weak self] _ in
-                // TO DO Удаление
-                print("Удалить")
+                guard let self = self else { return }
+                try? trackersService.deleteTracker(selectedTracker)
+                didReceiveRefreshRequest()
             }
             
             let pinAction = UIAction(
-                title: "Закрепить"
+                title: selectedTracker.isPinned ? "Открепить" : "Закрепить"
             ) { [weak self] _ in
-                // TO DO Закрепить
-                print("Закрепить")
+                guard let self else { return }
+                
+                if selectedTracker.isPinned {
+                    trackersService.unpinTracker(selectedTracker)
+                    didReceiveRefreshRequest()
+                } else {
+                    trackersService.pinTracker(selectedTracker)
+                    didReceiveRefreshRequest()
+                }
+
+                showTrackersInDate(currentDate)
+                refreshCollection()
             }
             
             return UIMenu(children: [pinAction, editAction, deleteAction])
