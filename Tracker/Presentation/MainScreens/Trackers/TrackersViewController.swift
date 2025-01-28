@@ -134,7 +134,7 @@ final class TrackersViewController: UIViewController, UISearchResultsUpdating, U
     override func viewDidLoad() {
         super.viewDidLoad()
         let date = Date()
-        view.backgroundColor = .ypWhite
+        view.backgroundColor = .systemBackground
         self.setUI(to: allUiElementsArray, set: allConstraintsArray)
         setupNavBar()
         showTrackersInDate(date)

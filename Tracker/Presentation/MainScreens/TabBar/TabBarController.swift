@@ -24,7 +24,7 @@ final class TabBarController: UITabBarController {
         statisticsViewController.title = statisticsTitle
         let statisticsNavigationController = UINavigationController(rootViewController: statisticsViewController)
         statisticsNavigationController.navigationBar.prefersLargeTitles = true
-
+        
         trackersViewController.tabBarItem = UITabBarItem(
             title: trackersTitle,
             image: UIImage(named: "trackersIcon"),
@@ -46,6 +46,13 @@ final class TabBarController: UITabBarController {
         uITabBarAppearance.stackedLayoutAppearance.disabled.iconColor = .ypGray
         tabBar.standardAppearance = uITabBarAppearance
         tabBar.layer.borderWidth = 1
-        tabBar.layer.borderColor = UIColor.ypGray.cgColor
+        let tabBarBorderColor = UIColor { (traits: UITraitCollection) -> UIColor in
+            if traits.userInterfaceStyle == .light {
+                return UIColor.ypGray
+            } else {
+                return UIColor.clear
+            }
+        }
+        tabBar.layer.borderColor = tabBarBorderColor.cgColor
     }
 }
