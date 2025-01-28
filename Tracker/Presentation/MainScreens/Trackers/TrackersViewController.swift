@@ -6,7 +6,7 @@
 //
 import UIKit
 
-final class TrackersViewController: UIViewController, UISearchResultsUpdating, UISearchControllerDelegate, TrackerCellDelegate, TrackersDelegateProtocol {
+final class TrackersViewController: UIViewController, UISearchResultsUpdating, UISearchControllerDelegate, TrackerCellDelegate, TrackersDelegateProtocol, FilterDelegateProtocol {
     
     // MARK: - Private Properties
     
@@ -19,6 +19,7 @@ final class TrackersViewController: UIViewController, UISearchResultsUpdating, U
         button.layer.cornerRadius = 16
         button.tintColor = .ypWhite
         button.backgroundColor = .ypBlue
+        button.addTarget(self, action: #selector(filterButtonTapped), for: .touchUpInside)
         return button
     }()
     private lazy var trackersCollectionView: UICollectionView = {
@@ -101,10 +102,11 @@ final class TrackersViewController: UIViewController, UISearchResultsUpdating, U
         return searchController.searchBar.text?.isEmpty ?? true
     }
     private var allUiElementsArray: [UIView] {
-        [trackersStubImage,
-         trackersStubLabel,
-         trackersCollectionView,
-         filterButton
+        [
+        trackersStubImage,
+        trackersStubLabel,
+        trackersCollectionView,
+        filterButton
         ]
     }
     private var allConstraintsArray: [NSLayoutConstraint] {
@@ -123,7 +125,8 @@ final class TrackersViewController: UIViewController, UISearchResultsUpdating, U
         guard let date = calendar.date(from: dateComponents) else { return Date() }
         return date
     }
-    
+    private var filterState: FilterState = .all
+    private var selectedDate: Date?
     // MARK: - Initializers
     
     // MARK: - Overrides Methods
@@ -145,6 +148,7 @@ final class TrackersViewController: UIViewController, UISearchResultsUpdating, U
     @objc
     func changeDate(_ sender: UIDatePicker) {
         let selectedDate = sender.date
+        self.selectedDate = selectedDate
         let dateComponents = calendar.dateComponents([.day, .month, .year], from: selectedDate)
         guard let date = Calendar.current.date(from: dateComponents) else { return }
         showTrackersInDate(date)
@@ -159,7 +163,27 @@ final class TrackersViewController: UIViewController, UISearchResultsUpdating, U
         self.present(chooseTrackerTypeNavigationController, animated: true)
     }
     
+    @objc
+    func filterButtonTapped(_ sender: UIButton) {
+        let filterViewController = FilterViewController(filterDelegate: self, filterState: filterState)
+        let filterNavController = UINavigationController(rootViewController: filterViewController)
+        self.present(filterNavController, animated: true)
+    }
+    
     // MARK: - Public Methods
+    func filter(_ filterState: FilterState) {
+        self.filterState = filterState
+        
+        switch filterState {
+        case .today:
+            didReceiveRefreshRequest()
+            datePicker.date = currentDate
+        default:
+            trackersService.filterTrackers(by: filterState)
+            refreshCollection()
+            trackersCollectionView.reloadData()
+        }
+    }
     
     func didReceiveRefreshRequest() {
         showTrackersInDate(currentDate)
@@ -389,9 +413,12 @@ extension TrackersViewController: UICollectionViewDelegate {
                 title: "Удалить",
                 attributes: .destructive
             ) { [weak self] _ in
-                guard let self = self else { return }
+                guard let self = self, let date = selectedDate else { return }
                 try? trackersService.deleteTracker(selectedTracker)
-                didReceiveRefreshRequest()
+                let dateComponents = calendar.dateComponents([.day, .month, .year], from: date)
+                guard let date = Calendar.current.date(from: dateComponents) else { return }
+                showTrackersInDate(date)
+                refreshCollection()
             }
             
             let pinAction = UIAction(
@@ -406,7 +433,7 @@ extension TrackersViewController: UICollectionViewDelegate {
                     trackersService.pinTracker(selectedTracker)
                     didReceiveRefreshRequest()
                 }
-
+                
                 showTrackersInDate(currentDate)
                 refreshCollection()
             }

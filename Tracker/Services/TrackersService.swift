@@ -13,8 +13,8 @@ final class TrackersService {
     
     static let shared = TrackersService()
     var trackerCategoryStore: TrackerCategoryStore {
-            return _trackerCategoryStore
-        }
+        return _trackerCategoryStore
+    }
     private let _trackerCategoryStore = TrackerCategoryStore()
     private var trackerRecordStore = TrackerRecordStore()
     
@@ -97,6 +97,100 @@ final class TrackersService {
         
     }
     
+    func filterTrackers(by state: FilterState) {
+        switch state {
+        case.all:
+            appendAllTrackerInVisibleCategory()
+        case.complete:
+            appendCompletedTrackerInVisibleCategory()
+        case.today:
+            break
+        case.uncomplete:
+            appendUncompletedTrackerInVisibleCategory()
+        }
+    }
+    
+    private func appendAllTrackerInVisibleCategory() {
+        clearVisibleTrackers()
+        var trackers = [Tracker]()
+        
+        for category in categories {
+            for tracker in category.trackers {
+                trackers.append(tracker)
+            }
+            
+            if !trackers.isEmpty {
+                let categoryWithVisibleTrackers = TrackerCategory(name: category.name, trackers: trackers)
+                visibleCategory.append(categoryWithVisibleTrackers)
+            }
+            trackers = []
+        }
+        
+        visibleCategory.sort { firstCategory, secondCategory in
+            if firstCategory.name == "Закрепленные" {
+                firstCategory.name > secondCategory.name
+            } else {
+                secondCategory.name > firstCategory.name
+            }
+        }
+    }
+    
+    private func appendCompletedTrackerInVisibleCategory() {
+        clearVisibleTrackers()
+        var trackers = [Tracker]()
+        let records = trackerRecordStore.getRecords()
+        for category in categories {
+            for tracker in category.trackers {
+                let trackerRecords = records.filter { $0.id == tracker.id }
+                if !trackerRecords.isEmpty {
+                    trackers.append(tracker)
+                }
+            }
+            
+            if !trackers.isEmpty {
+                let categoryWithVisibleTrackers = TrackerCategory(name: category.name, trackers: trackers)
+                visibleCategory.append(categoryWithVisibleTrackers)
+            }
+            trackers = []
+        }
+        
+        visibleCategory.sort { firstCategory, secondCategory in
+            if firstCategory.name == "Закрепленные" {
+                firstCategory.name > secondCategory.name
+            } else {
+                secondCategory.name > firstCategory.name
+            }
+        }
+    }
+    
+    private func appendUncompletedTrackerInVisibleCategory() {
+        clearVisibleTrackers()
+        var trackers = [Tracker]()
+        let records = trackerRecordStore.getRecords()
+        for category in categories {
+            for tracker in category.trackers {
+                let trackerRecords = records.filter { $0.id != tracker.id }
+                if !trackerRecords.isEmpty {
+                    trackers.append(tracker)
+                }
+            }
+            
+            if !trackers.isEmpty {
+                let categoryWithVisibleTrackers = TrackerCategory(name: category.name, trackers: trackers)
+                visibleCategory.append(categoryWithVisibleTrackers)
+            }
+            trackers = []
+        }
+        
+        visibleCategory.sort { firstCategory, secondCategory in
+            if firstCategory.name == "Закрепленные" {
+                firstCategory.name > secondCategory.name
+            } else {
+                secondCategory.name > firstCategory.name
+            }
+        }
+    }
+    
     func clearVisibleTrackers() {
         visibleCategory.removeAll()
     }
@@ -148,7 +242,7 @@ final class TrackersService {
     }
     
     func deleteCategory(_ category: TrackerCategory) throws {
-       try? trackerCategoryStore.deleteCategory(category)
+        try? trackerCategoryStore.deleteCategory(category)
     }
     
     func pinTracker(_ tracker: Tracker) {
@@ -168,7 +262,7 @@ final class TrackersService {
         createNewTracker(tracker: pinnedTracker, category: currentCategory.name)
         createNewTracker(tracker: pinnedTracker, category: "Закрепленные")
     }
-
+    
     func unpinTracker(_ tracker: Tracker) {
         let unpinnedTracker = Tracker(
             name: tracker.name,
