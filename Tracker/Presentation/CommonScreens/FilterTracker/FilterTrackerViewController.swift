@@ -75,8 +75,10 @@ class FilterViewController: UIViewController {
 extension FilterViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
+        let state: FilterState = indexPath.row == 0 ? .all : (indexPath.row == 1 ? .today : (indexPath.row == 2 ? .complete : .uncomplete))
+        self.filterState = state
+        tableView.reloadData()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            let state: FilterState = indexPath.row == 0 ? .all : (indexPath.row == 1 ? .today : (indexPath.row == 2 ? .complete : .uncomplete))
             self.filterDelegate?.filter(state)
             self.dismiss(animated: true)
         }
@@ -91,12 +93,10 @@ extension FilterViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .default, reuseIdentifier: "cell")
         let orderedKeys: [FilterState] = [.all, .today, .complete, .uncomplete]
-        let sortedValues = orderedKeys.compactMap { tableList[$0] }
-        if indexPath.row < sortedValues.count {
-            cell.textLabel?.text = sortedValues[indexPath.row]
-        } else {
-            cell.textLabel?.text = nil
-        }
+        let currentKey = orderedKeys[indexPath.row]
+        
+        cell.textLabel?.text = tableList[currentKey]
+        cell.accessoryType = currentKey == filterState ? .checkmark : .none
         cell.selectionStyle = .none
         cell.backgroundColor = .ypBackground
         return cell

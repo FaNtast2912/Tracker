@@ -186,16 +186,15 @@ final class TrackersViewController: UIViewController, UISearchResultsUpdating, U
     // MARK: - Public Methods
     func filter(_ filterState: FilterState) {
         self.filterState = filterState
-        
         switch filterState {
         case .today:
-            didReceiveRefreshRequest()
             datePicker.date = currentDate
         default:
-            trackersService.filterTrackers(by: filterState)
-            refreshCollection()
-            trackersCollectionView.reloadData()
+            break
         }
+        trackersService.getVisibleCategories(for: datePicker.date, and: filterState)
+        refreshCollection()
+        trackersCollectionView.reloadData()
     }
     
     func didReceiveRefreshRequest() {
@@ -230,37 +229,8 @@ final class TrackersViewController: UIViewController, UISearchResultsUpdating, U
     }
     
     func showTrackersInDate(_ date: Date) {
-        if !trackersService.isFiltering {
-            trackersService.saveVisibleCategoryState()
-            let completedTrackers = trackersService.getRecords()
-            trackersService.clearVisibleTrackers()
-            let weekday = convertWeekDay(weekDay: calendar.component(.weekday, from: date))
-            trackersService.appendTrackerInVisibleTrackers(weekday: weekday, from: completedTrackers, selectedDate: date)
-        }
+        trackersService.getVisibleCategories(for: date, and: filterState)
         trackersCollectionView.reloadData()
-    }
-
-    
-    private func convertWeekDay(weekDay: Int) -> Int {
-        switch weekDay {
-        case 2:
-            return 1
-        case 3:
-            return 2
-        case 4:
-            return 3
-        case 5:
-            return 4
-        case 6:
-            return 5
-        case 7:
-            return 6
-        case 1:
-            return 7
-        default:
-            print("unexpected week day")
-        }
-        return 0
     }
     
     private func refreshCollection() {
@@ -283,15 +253,11 @@ final class TrackersViewController: UIViewController, UISearchResultsUpdating, U
     
     func updateSearchResults(for searchController: UISearchController) {
         guard let query = searchController.searchBar.text else { return }
-        datePicker.date = currentDate
-        if query.isEmpty {
-            trackersService.isFiltering = false
-            didReceiveRefreshRequest()
-        } else {
-            trackersService.filterTrackersByName(query)
+        if !query.isEmpty {
+            trackersService.filterTrackersByName(query, date: datePicker.date)
+            refreshCollection()
+            trackersCollectionView.reloadData()
         }
-        refreshCollection()
-        trackersCollectionView.reloadData()
     }
     
     private func changeTrackersStub(isEmpty: Bool) {

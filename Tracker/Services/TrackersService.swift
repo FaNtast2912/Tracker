@@ -13,10 +13,8 @@ final class TrackersService {
     let trackerCategoryStore = TrackerCategoryStore()
     static let shared = TrackersService()
     var visibleCategory: [TrackerCategory] = []
-    var backupVisibleCategory: [TrackerCategory] = []
     var isStorageEmpty: Bool {
-        guard let firstCategory = categories.first else { return true }
-        return firstCategory.trackers.isEmpty
+        return categories.isEmpty
     }
     var visibleCount: Int { visibleCategory.count }
     var isVisibleTrackersEmpty: Bool {
@@ -35,8 +33,14 @@ final class TrackersService {
     var isFiltering: Bool = false
     
     // MARK: - Private Properties
+    private var filterState: FilterState = .all
     private var filteredTrackers: [TrackerCategory] = []
     private var trackerRecordStore = TrackerRecordStore()
+    private var calendar: Calendar {
+        var calendar = Calendar.current
+        calendar.timeZone = TimeZone.current
+        return calendar
+    }
     // MARK: - Initializers
     
     private init() { }
@@ -46,115 +50,22 @@ final class TrackersService {
     // MARK: - IB Actions
     
     // MARK: - Public Methods
-    func appendTrackerInVisibleTrackers(weekday: Int, from recordTrackers: [TrackerRecord], selectedDate: Date) {
-        var trackers = [Tracker]()
-        
-        let records = trackerRecordStore.getRecords()
-        
-        for category in categories {
-            for tracker in category.trackers {
-                if category.name == "Закрепленные", tracker.isPinned == true {
-                    trackers.append(tracker)
-                } else {
-                    if tracker.isEvent, tracker.isPinned == false {
-                        let trackerRecords = records.filter { $0.id == tracker.id }
-                        if trackerRecords.isEmpty {
-                            trackers.append(tracker)
-                        } else {
-                            let hasRecordOnSelectedDate = trackerRecords.contains { record in
-                                Calendar.current.isDate(record.date, inSameDayAs: selectedDate)
-                            }
-                            if hasRecordOnSelectedDate {
-                                trackers.append(tracker)
-                            }
-                        }
-                    } else if tracker.isPinned == false {
-                        for day in tracker.schedule {
-                            if day == weekday {
-                                trackers.append(tracker)
-                            }
-                        }
-                    }
-                }
-            }
-            if !trackers.isEmpty {
-                let categoryWithVisibleTrackers = TrackerCategory(name: category.name, trackers: trackers)
-                visibleCategory.append(categoryWithVisibleTrackers)
-            }
-            trackers.removeAll()
-        }
-        sortVisibleCategory()
-    }
     
-    func filterTrackers(by state: FilterState) {
-        switch state {
-        case.all:
-            appendAllTrackerInVisibleCategory()
-        case.complete:
-            appendCompletedTrackerInVisibleCategory()
-        case.today:
-            break
-        case.uncomplete:
-            appendUncompletedTrackerInVisibleCategory()
-        }
-    }
-    
-    private func appendAllTrackerInVisibleCategory() {
+    func getVisibleCategories(for selectedDate: Date, and state: FilterState) {
+        filterState = state
         clearVisibleTrackers()
-        var trackers = [Tracker]()
-        
-        for category in categories {
-            for tracker in category.trackers {
-                trackers.append(tracker)
-            }
-            
-            if !trackers.isEmpty {
-                let categoryWithVisibleTrackers = TrackerCategory(name: category.name, trackers: trackers)
-                visibleCategory.append(categoryWithVisibleTrackers)
-            }
-            trackers.removeAll()
-        }
-        sortVisibleCategory()
-    }
-    
-    private func appendCompletedTrackerInVisibleCategory() {
-        clearVisibleTrackers()
-        var trackers = [Tracker]()
+        let weekday = convertWeekDay(weekDay: calendar.component(.weekday, from: selectedDate))
         let records = trackerRecordStore.getRecords()
         for category in categories {
-            for tracker in category.trackers {
-                let trackerRecords = records.filter { $0.id == tracker.id }
-                if !trackerRecords.isEmpty {
-                    trackers.append(tracker)
-                }
+            if let visibleTrackers = getVisibleTrackers(
+                in: category,
+                weekday: weekday,
+                selectedDate: selectedDate,
+                records: records,
+                state: state
+            ) {
+                visibleCategory.append(visibleTrackers)
             }
-            
-            if !trackers.isEmpty {
-                let categoryWithVisibleTrackers = TrackerCategory(name: category.name, trackers: trackers)
-                visibleCategory.append(categoryWithVisibleTrackers)
-            }
-            trackers.removeAll()
-        }
-        sortVisibleCategory()
-    }
-    
-    private func appendUncompletedTrackerInVisibleCategory() {
-        clearVisibleTrackers()
-        var trackers = [Tracker]()
-        let records = trackerRecordStore.getRecords()
-        for category in categories {
-            for tracker in category.trackers {
-                let trackerRecords = records.filter { $0.id != tracker.id }
-                if !trackerRecords.isEmpty {
-                    trackers.append(tracker)
-                }
-            }
-            
-            if !trackers.isEmpty {
-                let categoryWithVisibleTrackers = TrackerCategory(name: category.name, trackers: trackers)
-                visibleCategory.append(categoryWithVisibleTrackers)
-            }
-            trackers.removeAll()
         }
         sortVisibleCategory()
     }
@@ -213,10 +124,6 @@ final class TrackersService {
         try? trackerCategoryStore.deleteCategory(category)
     }
     
-    func saveVisibleCategoryState() {
-        backupVisibleCategory = visibleCategory
-    }
-    
     func pinTracker(_ tracker: Tracker) {
         let pinnedTracker = Tracker(
             name: tracker.name,
@@ -253,18 +160,21 @@ final class TrackersService {
         createNewTracker(tracker: unpinnedTracker, category: currentCategory.name)
     }
     
-    func filterTrackersByName(_ query: String) {
+    func filterTrackersByName(_ query: String, date: Date) {
         clearVisibleTrackers()
-        isFiltering = true
         var trackers = [Tracker]()
-        
+        let weekday = convertWeekDay(weekDay: calendar.component(.weekday, from: date))
         for category in categories {
             for tracker in category.trackers {
                 if category.name == "Закрепленные", tracker.isPinned == true {
                     trackers.append(tracker)
                 } else {
                     if tracker.name.lowercased().contains(query.lowercased()) {
-                        trackers.append(tracker)
+                        if tracker.isEvent {
+                            trackers.append(tracker)
+                        } else if tracker.schedule.contains(weekday){
+                            trackers.append(tracker)
+                        }
                     }
                 }
             }
@@ -277,6 +187,98 @@ final class TrackersService {
         sortVisibleCategory()
     }
     // MARK: - Private Methods
+    private func getVisibleTrackers(
+        in category: TrackerCategory,
+        weekday: Int,
+        selectedDate: Date,
+        records: [TrackerRecord],
+        state: FilterState
+    ) -> TrackerCategory? {
+        let visibleTrackers = category.trackers.filter { tracker in
+            
+            if isPinnedInPinnedCategory(tracker: tracker, categoryName: category.name) {
+                return true
+            }
+            
+            if tracker.isPinned {
+                return false
+            }
+            
+            return tracker.isEvent
+            ? isVisibleEvent(tracker: tracker, selectedDate: selectedDate, records: records, state: state)
+            : isVisibleRegularTracker(tracker: tracker, selectedDate: selectedDate, state: state, records: records)
+            
+        }
+        
+        return visibleTrackers.isEmpty ? nil : TrackerCategory(
+            name: category.name,
+            trackers: visibleTrackers
+        )
+    }
+    
+    private func isPinnedInPinnedCategory(tracker: Tracker, categoryName: String) -> Bool {
+        categoryName == "Закрепленные" && tracker.isPinned
+    }
+    
+    private func isVisibleEvent(
+        tracker: Tracker,
+        selectedDate: Date,
+        records: [TrackerRecord],
+        state: FilterState
+    ) -> Bool {
+        let trackerRecords = records.filter { $0.id == tracker.id }
+        
+        if !trackerRecords.isEmpty, state == .uncomplete {
+            return false
+        } else if trackerRecords.isEmpty, state == .complete {
+            return false
+        } else if trackerRecords.isEmpty {
+            return true
+        }
+        
+        return trackerRecords.contains { record in
+            calendar.isDate(record.date, inSameDayAs: selectedDate)
+        }
+    }
+    
+    private func isVisibleRegularTracker(tracker: Tracker, selectedDate: Date, state: FilterState, records: [TrackerRecord]) -> Bool {
+        let trackerRecords = records.filter { $0.id == tracker.id }
+        let weekday = convertWeekDay(weekDay: calendar.component(.weekday, from: selectedDate))
+        
+        if !trackerRecords.isEmpty, state == .uncomplete {
+            return false
+        } else if !trackerRecords.isEmpty, state == .complete {
+            return trackerRecords.contains { record in
+                calendar.isDate(record.date, inSameDayAs: selectedDate)
+            }
+        } else if trackerRecords.isEmpty, state == .complete {
+            return false
+        }
+        
+        return tracker.schedule.contains(weekday)
+    }
+
+    private func convertWeekDay(weekDay: Int) -> Int {
+        switch weekDay {
+        case 2:
+            return 1
+        case 3:
+            return 2
+        case 4:
+            return 3
+        case 5:
+            return 4
+        case 6:
+            return 5
+        case 7:
+            return 6
+        case 1:
+            return 7
+        default:
+            print("unexpected week day")
+        }
+        return 0
+    }
     
     private func sortVisibleCategory() {
         visibleCategory.sort { firstCategory, secondCategory in
@@ -287,5 +289,4 @@ final class TrackersService {
             }
         }
     }
-    
 }
