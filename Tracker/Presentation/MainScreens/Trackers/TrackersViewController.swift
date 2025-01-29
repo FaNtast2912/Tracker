@@ -229,13 +229,17 @@ final class TrackersViewController: UIViewController, UISearchResultsUpdating, U
         return trackersService.isTrackerRecordExist(id, date: date)
     }
     
-    private func showTrackersInDate(_ date: Date) {
-        let completedTrackers = trackersService.getRecords()
-        trackersService.clearVisibleTrackers()
-        let weekday = convertWeekDay(weekDay: calendar.component(.weekday, from: date))
-        trackersService.appendTrackerInVisibleTrackers(weekday: weekday, from: completedTrackers, selectedDate: date)
+    func showTrackersInDate(_ date: Date) {
+        if !trackersService.isFiltering {
+            trackersService.saveVisibleCategoryState()
+            let completedTrackers = trackersService.getRecords()
+            trackersService.clearVisibleTrackers()
+            let weekday = convertWeekDay(weekDay: calendar.component(.weekday, from: date))
+            trackersService.appendTrackerInVisibleTrackers(weekday: weekday, from: completedTrackers, selectedDate: date)
+        }
         trackersCollectionView.reloadData()
     }
+
     
     private func convertWeekDay(weekDay: Int) -> Int {
         switch weekDay {
@@ -260,7 +264,7 @@ final class TrackersViewController: UIViewController, UISearchResultsUpdating, U
     }
     
     private func refreshCollection() {
-        let isStorageEmpty = false
+        let isStorageEmpty = trackersService.isStorageEmpty
         let isVisibleTrackersEmpty = trackersService.isVisibleTrackersEmpty
         
         if isStorageEmpty {
@@ -277,10 +281,17 @@ final class TrackersViewController: UIViewController, UISearchResultsUpdating, U
         }
     }
     
-    internal func updateSearchResults(for searchController: UISearchController) {
-        if trackersService.isVisibleTrackersEmpty {
-            changeTrackersStub(isEmpty: true)
+    func updateSearchResults(for searchController: UISearchController) {
+        guard let query = searchController.searchBar.text else { return }
+        datePicker.date = currentDate
+        if query.isEmpty {
+            trackersService.isFiltering = false
+            didReceiveRefreshRequest()
+        } else {
+            trackersService.filterTrackersByName(query)
         }
+        refreshCollection()
+        trackersCollectionView.reloadData()
     }
     
     private func changeTrackersStub(isEmpty: Bool) {
@@ -331,21 +342,18 @@ extension TrackersViewController: UICollectionViewDataSource {
         let item = indexPath.item
         let tracker = trackersService.getTrackerDetails(section: section, item: item)
         let isCompletedToday = isTrackerCompletedToday(id: tracker.id)
-        let completedTrackers = trackersService.getRecords()
-        let completedDays = completedTrackers.filter { $0.id == tracker.id }.count
-        cell.configureCell(tracker: tracker,
-                           isCompletedToday: isCompletedToday,
-                           completedDays: completedDays,
-                           indexPath: indexPath,
-                           delegate: self
+        let completedDays = trackersService.getRecords().filter { $0.id == tracker.id }.count
+        
+        cell.configureCell(
+            tracker: tracker,
+            isCompletedToday: isCompletedToday,
+            completedDays: completedDays,
+            indexPath: indexPath,
+            delegate: self
         )
         
-        if datePicker.date > Date() {
-            cell.doneButton.isHidden = true
-        }  else {
-            cell.doneButton.isHidden = false
-        }
-        cell.prepareForReuse()
+        cell.doneButton.isHidden = datePicker.date > Date()
+        
         return cell
     }
     
