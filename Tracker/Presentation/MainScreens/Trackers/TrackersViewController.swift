@@ -17,7 +17,7 @@ final class TrackersViewController: UIViewController, UISearchResultsUpdating, U
         button.titleLabel?.font = .systemFont(ofSize: 17, weight: .medium)
         button.setTitle(title, for: .normal)
         button.layer.cornerRadius = 16
-        button.tintColor = .ypWhite
+        button.tintColor = .ypAllStateWhite
         button.backgroundColor = .ypBlue
         button.addTarget(self, action: #selector(filterButtonTapped), for: .touchUpInside)
         return button
@@ -127,20 +127,31 @@ final class TrackersViewController: UIViewController, UISearchResultsUpdating, U
     }
     private var filterState: FilterState = .all
     private var selectedDate: Date?
+    private let analyticsService = AnalyticsService()
     // MARK: - Initializers
     
     // MARK: - Overrides Methods
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        let date = Date()
-        view.backgroundColor = .systemBackground
+        self.selectedDate = datePicker.date
+        view.backgroundColor = .ypWhite
         self.setUI(to: allUiElementsArray, set: allConstraintsArray)
         setupNavBar()
-        showTrackersInDate(date)
+        showTrackersInDate(datePicker.date)
         refreshCollection()
         trackersService.trackerCategoryStore.delegate = self
         trackersCollectionView.reloadData()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        analyticsService.report(event: .open, screen: .main, item: nil)
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        analyticsService.report(event: .close, screen: .main, item: nil)
     }
     
     // MARK: - IB Actions
@@ -156,6 +167,7 @@ final class TrackersViewController: UIViewController, UISearchResultsUpdating, U
     }
     @objc
     func didTapAddTrackerButton() {
+        analyticsService.report(event: .click, screen: .main, item: .addTrack)
         let viewControllerToPresent = ChooseTrackerTypeViewController()
         viewControllerToPresent.title = "Создание трекера"
         viewControllerToPresent.delegateToViewControllers = self
@@ -165,6 +177,7 @@ final class TrackersViewController: UIViewController, UISearchResultsUpdating, U
     
     @objc
     func filterButtonTapped(_ sender: UIButton) {
+        analyticsService.report(event: .click, screen: .main, item: .filter)
         let filterViewController = FilterViewController(filterDelegate: self, filterState: filterState)
         let filterNavController = UINavigationController(rootViewController: filterViewController)
         self.present(filterNavController, animated: true)
@@ -191,6 +204,7 @@ final class TrackersViewController: UIViewController, UISearchResultsUpdating, U
     }
     
     func didReceiveCompleteTrackerId(on index: IndexPath, for id: UUID) {
+        analyticsService.report(event: .click, screen: .main, item: .track)
         let selectedDay = datePicker.date
         let dateComponents = Calendar.current.dateComponents([.day, .month, .year], from: selectedDay)
         guard let date = Calendar.current.date(from: dateComponents) else { return }
@@ -399,6 +413,7 @@ extension TrackersViewController: UICollectionViewDelegate {
                 title: "Редактировать"
             ) { [weak self] _ in
                 guard let self else { return }
+                analyticsService.report(event: .click, screen: .main, item: .edit)
                 let completedTrackers = trackersService.getRecords()
                 let completedDays = completedTrackers.filter { $0.id == selectedTracker.id }.count
                 let localizedString = String.localizedStringWithFormat(NSLocalizedString("numberOfDay", comment: "number of day"), completedDays)
@@ -414,6 +429,7 @@ extension TrackersViewController: UICollectionViewDelegate {
                 attributes: .destructive
             ) { [weak self] _ in
                 guard let self = self, let date = selectedDate else { return }
+                analyticsService.report(event: .click, screen: .main, item: .delete)
                 try? trackersService.deleteTracker(selectedTracker)
                 let dateComponents = calendar.dateComponents([.day, .month, .year], from: date)
                 guard let date = Calendar.current.date(from: dateComponents) else { return }
