@@ -77,10 +77,20 @@ final class TrackersService {
         trackerCategoryStore.addTrackerToCategory(tracker, category: category)
     }
     func deleteTracker(_ tracker: Tracker) throws {
+        let records = trackerRecordStore.getRecords()
+        let relatedRecords = records.filter { $0.id == tracker.id }
+        for record in relatedRecords {
+            try trackerRecordStore.removeTrackerRecord(record)
+        }
+        
         guard let category = categories.first(where: { $0.trackers.contains(where: { $0.id == tracker.id }) }) else {
             return
         }
         trackerCategoryStore.deleteTracker(tracker, from: category.name)
+        
+        if tracker.isPinned {
+            trackerCategoryStore.deleteTracker(tracker, from: "Закрепленные")
+        }
     }
     func createNewCategory(newCategory: TrackerCategory) {
         try? trackerCategoryStore.addNewTrackerCategory(newCategory)

@@ -155,8 +155,16 @@ final class TrackerCategoryStore: NSObject {
             let categories = try context.fetch(fetchRequest)
             if let categoryToDelete = categories.first {
                 if let trackers = categoryToDelete.trackers?.allObjects as? [TrackerCoreData] {
-                    for tracker in trackers {
-                        context.delete(tracker)
+                    let trackerRecordStore = TrackerRecordStore(context: context)
+                    for trackerCoreData in trackers {
+                        if let trackerId = trackerCoreData.id {
+                            let records = trackerRecordStore.getRecords()
+                            let relatedRecords = records.filter { $0.id == trackerId }
+                            for record in relatedRecords {
+                                try trackerRecordStore.removeTrackerRecord(record)
+                            }
+                        }
+                        context.delete(trackerCoreData)
                     }
                 }
                 context.delete(categoryToDelete)
