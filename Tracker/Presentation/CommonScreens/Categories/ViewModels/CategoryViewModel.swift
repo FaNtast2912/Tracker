@@ -31,9 +31,7 @@ final class CategoryViewModel {
     
     // MARK: - Public Methods
     func loadCategories() {
-        categories = categoryStore.trackersCategories.filter({ category in
-            category.name != "Закрепленные"
-        })
+        categories = categoryStore.trackersCategories.filter { $0.name != "Закрепленные" }
         isEmptyBinding?(categories.isEmpty)
     }
     

@@ -140,9 +140,7 @@ final class TrackerCategoryStore: NSObject {
         fetchRequest.predicate = NSPredicate(format: "name == %@", name)
         do {
             let categories = try context.fetch(fetchRequest)
-            guard let firstCategory = categories.first else {
-                fatalError("Category \(name) not found")
-            }
+            guard let firstCategory = categories.first else { return nil }
             return try? trackerCategory(from: firstCategory)
         }
     }

@@ -8,7 +8,7 @@ import Foundation
 import UIKit
 
 final class TabBarController: UITabBarController {
-    // private properties
+    // Public properties
     let trackersTitle = NSLocalizedString("trakersTitle", comment: "trackers title vc and tabs")
     let statisticsTitle = NSLocalizedString("statisticsTitle", comment: "statistics title vc and tabs")
     // MARK: - Overrides Methods
@@ -47,11 +47,7 @@ final class TabBarController: UITabBarController {
         tabBar.standardAppearance = uITabBarAppearance
         tabBar.layer.borderWidth = 1
         let tabBarBorderColor = UIColor { (traits: UITraitCollection) -> UIColor in
-            if traits.userInterfaceStyle == .light {
-                return UIColor.ypGray
-            } else {
-                return UIColor.clear
-            }
+            traits.userInterfaceStyle == .light ? UIColor.ypGray : UIColor.clear
         }
         tabBar.layer.borderColor = tabBarBorderColor.cgColor
     }

@@ -14,7 +14,7 @@ final class TrackersService {
     static let shared = TrackersService()
     var visibleCategory: [TrackerCategory] = []
     var isStorageEmpty: Bool {
-        return categories.isEmpty
+        return categories.count == 1 && categories[0].trackers.isEmpty
     }
     var visibleCount: Int { visibleCategory.count }
     var isVisibleTrackersEmpty: Bool {

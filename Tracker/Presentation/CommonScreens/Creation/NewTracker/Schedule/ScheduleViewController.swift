@@ -5,6 +5,7 @@
 //  Created by Maksim Zakharov on 09.12.2024.
 //
 import UIKit
+
 final class ScheduleViewController:  UIViewController, WeekDayCellDelegateProtocol {
     
     // MARK: - Public Properties
@@ -122,6 +123,6 @@ extension ScheduleViewController: UITableViewDataSource {
 
 extension ScheduleViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        print("select")
+        // TO DO selection code
     }
 }

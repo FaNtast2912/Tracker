@@ -6,9 +6,7 @@
 //
 import UIKit
 
-
-
-class FilterViewController: UIViewController {
+final class FilterViewController: UIViewController {
     // MARK: - Public Properties
     private let tableList: [FilterState: String] = [
         .all: "Все трекеры",

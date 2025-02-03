@@ -8,8 +8,6 @@
 import UIKit
 
 final class EditCategoryViewController: UIViewController {
-    // MARK: - Public Properties
-    
     // MARK: - Private Properties
     private lazy var errorLabel: UILabel = {
         let label = UILabel()
@@ -107,10 +105,7 @@ final class EditCategoryViewController: UIViewController {
         let newCategory = TrackerCategory(name: categoryName, trackers: [])
         viewModel.addCategory(newCategory)
         dismiss(animated: true)
-    }
-    
-    // MARK: - Public Methods
-    
+    }  
     // MARK: - Private Methods
     private func updateCreateButtonState() {
         let isEnabled = newCategoryTitle != nil
