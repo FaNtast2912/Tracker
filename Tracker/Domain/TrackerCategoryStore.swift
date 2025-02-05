@@ -71,6 +71,10 @@ final class TrackerCategoryStore: NSObject {
     convenience override init() {
         let context = DataBaseStore.shared.persistentContainer.viewContext
         self.init(context: context)
+        if !isCategoryExists("Закрепленные") {
+            let pinned = TrackerCategory(name: "Закрепленные", trackers: [])
+            try? addNewTrackerCategory(pinned)
+        }
     }
     
     init(context: NSManagedObjectContext) {
@@ -91,7 +95,25 @@ final class TrackerCategoryStore: NSObject {
         categoryRaw?.addToTrackers(trackerCoreData)
         save()
     }
-    // MARK: - Private Methods
+    func deleteTracker(_ tracker: Tracker, from category: String) {
+        let fetchRequest = TrackerCategoryCoreData.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "name == %@", category)
+        
+        do {
+            let categories = try context.fetch(fetchRequest)
+            if let categoryToModify = categories.first,
+               let trackers = categoryToModify.trackers?.allObjects as? [TrackerCoreData] {
+                
+                // Find and delete the specific tracker
+                if let trackerToDelete = trackers.first(where: { $0.id == tracker.id }) {
+                    context.delete(trackerToDelete)
+                    save()
+                }
+            }
+        } catch {
+            print("Error deleting tracker: \(error)")
+        }
+    }
     
     func addNewTrackerCategory(_ trackerCategory: TrackerCategory) throws {
         let trackerCategoryCoreData = TrackerCategoryCoreData(context: context)
@@ -113,6 +135,16 @@ final class TrackerCategoryStore: NSObject {
         }
     }
     
+    func trackerCategory(named name: String) throws -> TrackerCategory? {
+        let fetchRequest = TrackerCategoryCoreData.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "name == %@", name)
+        do {
+            let categories = try context.fetch(fetchRequest)
+            guard let firstCategory = categories.first else { return nil }
+            return try? trackerCategory(from: firstCategory)
+        }
+    }
+    
     func deleteCategory(_ category: TrackerCategory) throws {
         let fetchRequest = TrackerCategoryCoreData.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "name == %@", category.name)
@@ -121,8 +153,16 @@ final class TrackerCategoryStore: NSObject {
             let categories = try context.fetch(fetchRequest)
             if let categoryToDelete = categories.first {
                 if let trackers = categoryToDelete.trackers?.allObjects as? [TrackerCoreData] {
-                    for tracker in trackers {
-                        context.delete(tracker)
+                    let trackerRecordStore = TrackerRecordStore(context: context)
+                    for trackerCoreData in trackers {
+                        if let trackerId = trackerCoreData.id {
+                            let records = trackerRecordStore.getRecords()
+                            let relatedRecords = records.filter { $0.id == trackerId }
+                            for record in relatedRecords {
+                                try trackerRecordStore.removeTrackerRecord(record)
+                            }
+                        }
+                        context.delete(trackerCoreData)
                     }
                 }
                 context.delete(categoryToDelete)
@@ -133,8 +173,8 @@ final class TrackerCategoryStore: NSObject {
             throw error
         }
     }
-    
-    
+    // MARK: - Private Methods
+
     private func trackerCategory(from trackerCategoryCoreData: TrackerCategoryCoreData) throws -> TrackerCategory {
         guard let name = trackerCategoryCoreData.name else {
             throw TrackerCategoryStoreError.decodingErrorInvalidName

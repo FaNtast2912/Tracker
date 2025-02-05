@@ -90,8 +90,16 @@ final class OnboardingViewController: UIViewController {
     @objc
     func onboardingButtonTapped() {
         let tabBarViewController = TabBarController()
-        tabBarViewController.modalPresentationStyle = .fullScreen
-        present(tabBarViewController, animated: true)
+        DispatchQueue.main.async {
+            if let window = UIApplication.shared.keyWindow {
+                let newRootViewController = tabBarViewController
+                UIView.transition(with: window, duration: 0.5, options: .transitionCrossDissolve, animations: {
+                    window.rootViewController = newRootViewController
+                }, completion: { _ in
+                    window.makeKeyAndVisible()
+                })
+            }
+        }
     }
     // MARK: - Public Methods
     

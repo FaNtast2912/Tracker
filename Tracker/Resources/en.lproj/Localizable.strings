@@ -1,0 +1,16 @@
+/* 
+  Localizable.strings
+  Tracker
+
+  Created by Maksim Zakharov on 25.01.2025.
+  
+*/
+
+// Main screen
+
+"trakersTitle" = "Trackers";
+"statisticsTitle" = "Statistics";
+"filterButtonTitle" = "Filters";
+"searchTextFieldPlaceholder" = "Search";
+"trackerStubTitle" = "What will we track?";
+"trackersIsEmpty" = "Nothing found";

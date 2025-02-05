@@ -5,13 +5,16 @@
 //  Created by Maksim Zakharov on 23.11.2024.
 //
 
-import Testing
+import XCTest
+import SnapshotTesting
 @testable import Tracker
 
-struct TrackerTests {
-
-    @Test func example() async throws {
-        // Write your test here and use APIs like `#expect(...)` to check expected conditions.
+class TrackerTests: XCTestCase {
+    
+    func testViewController() {
+        let vc = TrackersViewController()
+        vc.view.backgroundColor = .red
+        assertSnapshot(of: vc, as: .image)
     }
-
+    
 }
