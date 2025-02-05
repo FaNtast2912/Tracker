@@ -14,8 +14,4 @@ target 'Tracker' do
     # Pods for testing
   end
 
-  target 'TrackerUITests' do
-    # Pods for testing
-  end
-
 end

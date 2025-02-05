@@ -244,7 +244,7 @@ final class TrackersViewController: UIViewController, UISearchResultsUpdating, U
         }
         if !isStorageEmpty && isVisibleTrackersEmpty {
             trackersCollectionView.isHidden = true
-            filterButton.isHidden = true
+            filterButton.isHidden = false
             changeTrackersStub(isEmpty: true)
         }
         if !isStorageEmpty && !isVisibleTrackersEmpty {

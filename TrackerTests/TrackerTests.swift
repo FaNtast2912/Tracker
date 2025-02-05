@@ -13,6 +13,7 @@ class TrackerTests: XCTestCase {
     
     func testViewController() {
         let vc = TrackersViewController()
+        vc.view.backgroundColor = .red
         assertSnapshot(of: vc, as: .image)
     }
     
