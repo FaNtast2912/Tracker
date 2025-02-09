@@ -1,6 +1,7 @@
 # ТЗ мобильного приложения для трекинга привычек
 
-![Tracker Demo](https://raw.githubusercontent.com/FaNtast2912/Tracker/main/Demo/TrackerDemo.gif)  
+<img src="https://raw.githubusercontent.com/FaNtast2912/Tracker/main/Demo/TrackerDemo.gif" alt="Tracker Demo" width="200">  
+*Demonstrates habit creation, tracking, and localization.*  
 
 # Ссылки
 
